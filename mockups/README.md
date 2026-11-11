@@ -21,6 +21,10 @@ The page canvases are sized like Power BI pages: 1280 × 720 (16:9) for pages 1�
 | 2 | **Risk by Organization** | RAG KPI strip. Drillable matrix CIO org → managed-by group with installs, past-EOS count, % past EOS (RAG background), change vs prior snapshot and a 7-snapshot sparkline. Bar chart ranking managed-by groups by average days non-compliant, with bar colour set by the group's RAG. Clicking an org row in the matrix cross-filters the bar chart. | Environment, business criticality |
 | 3 | **Lifecycle Detail & Remediation** | "View by" toggle (Product / Organization), standing in for a Power BI **field parameter**. Drillable matrix Product → Version → Host or CIO org → Managed-by group → Host, with version, effective EOS date, days past EOS and days non-compliant. Remediation worklist table (sortable, scrolls like a Power BI table, with a Total row). Selecting a matrix row cross-filters it. Two **field-parameter slicers** (Worklist columns, Worklist measures) set which fields the table shows, and so its grain. **Saved views** buttons stand in for bookmarks (Host / install, Host, Product version, Managed-by group). Export is under the visual's **⋯ More options → Export data**. | Environment, business criticality, EOS status, managed-by group, product category; worklist column/measure field-parameter slicers |
 
+## Screenshots
+
+The [`screenshots/`](screenshots/) folder holds screenshots of every page and key interaction, for future reference.
+
 ## Power BI feasibility
 
 Every interaction in the mockups maps to a native Power BI feature. A few designs were changed so they don't promise something Power BI can't do.

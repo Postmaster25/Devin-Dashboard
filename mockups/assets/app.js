@@ -493,7 +493,7 @@
     { key: "avgNC", label: "Days non-compliant (avg)", short: "Avg days NC", csv: "avg_days_non_compliant", agg: (l) => avgOf(l, "daysNC") },
   ].map((m) => ({ ...m, num: true }));
   const WL_PRESETS = {
-    "Host / install": { dims: ["host", "env", "crit", "product", "version", "group", "org", "status", "eff"], measures: ["daysPast", "daysNC"] },
+    "Host / install": { dims: ["id", "host", "env", "crit", "product", "version", "group", "status", "eff"], measures: ["daysPast", "daysNC"] },
     "Host": { dims: ["host", "ciType", "env", "crit", "group", "org"], measures: ["installs", "pastCount", "pastPct", "upcoming", "daysPast", "daysNC"] },
     "Product version": { dims: ["product", "version", "mfr", "eff", "status"], measures: ["installs", "hosts", "pastCount", "upcoming", "daysPast"] },
     "Managed-by group": { dims: ["org", "group", "groupMgr"], measures: ["installs", "hosts", "pastCount", "pastPct", "upcoming", "avgNC", "daysNC"] },

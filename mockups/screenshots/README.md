@@ -1,6 +1,6 @@
 # Mockup screenshots
 
-These screenshots record the approved-for-review design mockups. They were captured at 1440 px wide from `../index.html`, using the data in `../assets/mock-data.js` (latest snapshot 19 Sep 2026). Recapture them whenever the mockups change.
+These screenshots record the design mockups (pending approval). They were captured at 1440 px wide from `../index.html`, using the data in `../assets/mock-data.js` (latest snapshot 19 Sep 2026). Recapture them whenever the mockups change.
 
 | File | Shows |
 |---|---|

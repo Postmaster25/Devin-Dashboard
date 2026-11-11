@@ -1,0 +1,681 @@
+/* Software End of Support - Power BI design mockups.
+ * Business rules mirrored from the agreed spec:
+ *   Effective EOS = COALESCE(extended_support_end_date, obsolete_date, end_of_life_date)
+ *   Past EOS when effective EOS <= snapshot date; Unknown when all three are blank.
+ *   Extended = not yet past effective EOS but end_of_life_date already passed.
+ *   RAG on % past EOS: <= 3% green, 3-5% amber, > 5% red.
+ *   Upcoming / projections anchor to MAX(snapshot_date).
+ */
+(function () {
+  "use strict";
+
+  const D = window.MOCK_DATA;
+  const C = {
+    red: "#D71E28", redDark: "#B0151E", gold: "#FFBB41", text: "#3B3331", muted: "#6E6563",
+    grid: "#EFEAE6", green: "#2E8B47", amberText: "#B47A00", unknown: "#B8B1AD",
+  };
+  const FONT = '"Wells Fargo Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+  const STATUS = ["Past EOS", "Extended", "Supported", "Unknown"];
+  const STATUS_COLORS = { "Past EOS": C.red, Extended: C.gold, Supported: C.green, Unknown: C.unknown };
+  const STATUS_CLASS = { "Past EOS": "past", Extended: "extended", Supported: "supported", Unknown: "unknown" };
+  const GREEN_MAX = 0.03, AMBER_MAX = 0.05;
+  const DAY_MS = 86400000;
+
+  /* ---------- helpers ---------- */
+  const toDate = (d) => new Date(d * DAY_MS);
+  const iso = (d) => (d == null ? "" : toDate(d).toISOString().slice(0, 10));
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const longDate = (d) => { const t = toDate(d); return `${t.getUTCDate()} ${MONTHS[t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
+  const monthLabel = (y, m) => `${MONTHS[m]} ${String(y).slice(2)}`;
+  const dayNum = (y, m, dd) => Math.round(Date.UTC(y, m, dd) / DAY_MS);
+  const endOfMonth = (y, m) => dayNum(y, m + 1, 0);
+  const edate = (d, months) => { const t = toDate(d); return dayNum(t.getUTCFullYear(), t.getUTCMonth() + months, t.getUTCDate()); };
+  const n0 = (v) => v.toLocaleString("en-US");
+  const pct = (v, dp = 1) => (v == null || isNaN(v) ? "–" : (v * 100).toFixed(dp) + "%");
+  const ratio = (a, b) => (b ? a / b : null);
+  const rag = (p) => (p == null ? "" : p <= GREEN_MAX ? "green" : p <= AMBER_MAX ? "amber" : "red");
+  const ragColor = (p) => ({ green: C.green, amber: C.gold, red: C.red }[rag(p)] || C.unknown);
+  const ragText = (p) => ({ green: C.green, amber: C.amberText, red: C.red }[rag(p)] || C.muted);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const el = (sel, root = document) => root.querySelector(sel);
+  const els = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  /* ---------- model ---------- */
+  const SNAP = D.snapshots[D.snapshots.length - 1];
+  const SNAP_PREV = D.snapshots[D.snapshots.length - 2];
+  const SNAP_6M = edate(SNAP, 6);
+
+  const installs = D.installs.map((r) => {
+    const [id, h, p, version, edition, eol, ext, obs, aging] = r;
+    const host = D.hosts[h];
+    const group = D.groups[host[1]];
+    const prod = D.products[p];
+    const eff = ext ?? obs ?? eol;
+    const basis = ext != null ? "Extended support end" : obs != null ? "Obsolete" : eol != null ? "End of life" : "";
+    let status;
+    if (eff == null) status = "Unknown";
+    else if (eff <= SNAP) status = "Past EOS";
+    else if (eol != null && eol <= SNAP) status = "Extended";
+    else status = "Supported";
+    return {
+      id: "SI" + id, hostIdx: h, host: host[0], ciId: host[7], ciType: D.ciTypes[host[4]], city: host[5], country: host[6],
+      env: D.envs[host[2]], crit: D.crits[host[3]], groupIdx: host[1], group: group[0], groupMgr: group[2],
+      orgIdx: group[1], org: D.orgs[group[1]][0], orgMgr: D.orgs[group[1]][1],
+      prodIdx: p, product: prod[0], mfr: prod[1], cat: D.cats[prod[2]], version, edition: D.editions[edition],
+      eol, ext, obs, eff, basis, status, past: status === "Past EOS",
+      daysPast: status === "Past EOS" ? SNAP - eff : null,
+      aging, daysNC: aging != null ? SNAP - aging : null,
+      within6m: eff != null && eff > SNAP && eff <= SNAP_6M,
+    };
+  });
+
+  const cube = D.cube.map(([s, g, e, c, n, past]) => ({
+    snap: D.snapshots[s], groupIdx: g, orgIdx: D.groups[g][1], env: D.envs[e], crit: D.crits[c], n, past,
+  }));
+
+  const OPTIONS = {
+    org: D.orgs.map((o) => o[0]),
+    env: ["Production", "Disaster Recovery", "QA", "Development", "Sandbox"].filter((e) => D.envs.includes(e)),
+    crit: D.crits.slice().sort(),
+    status: STATUS,
+    group: D.groups.map((g) => g[0]).sort(),
+    cat: D.cats.slice().sort(),
+  };
+  const FIELD = { org: "org", env: "env", crit: "crit", status: "status", group: "group", cat: "cat" };
+  const matches = (row, filters) => Object.entries(filters).every(([k, set]) => !set.size || set.has(row[FIELD[k]]));
+  const cubeRow = (c) => ({ org: D.orgs[c.orgIdx][0], env: c.env, crit: c.crit, group: D.groups[c.groupIdx][0] });
+
+  function cubeSeries(filters, keyFn = () => "all") {
+    const out = new Map();
+    for (const c of cube) {
+      if (!matches(cubeRow(c), filters)) continue;
+      const key = keyFn(c);
+      if (!out.has(key)) out.set(key, new Map(D.snapshots.map((s) => [s, { n: 0, past: 0 }])));
+      const cell = out.get(key).get(c.snap);
+      cell.n += c.n; cell.past += c.past;
+    }
+    return out;
+  }
+
+  /* ---------- charts ---------- */
+  const charts = {};
+  function chart(id) {
+    if (!charts[id]) charts[id] = echarts.init(document.getElementById(id), null, { renderer: "canvas" });
+    return charts[id];
+  }
+  const baseText = { fontFamily: FONT, color: C.text };
+  const axisCommon = {
+    axisLine: { lineStyle: { color: "#BDB5B1" } }, axisTick: { show: false },
+    axisLabel: { color: C.muted, fontFamily: FONT, fontSize: 11 }, splitLine: { lineStyle: { color: C.grid } },
+  };
+  const tooltip = (extra = {}) => ({ textStyle: { fontFamily: FONT, fontSize: 12, color: C.text }, borderColor: "#E3DEDA", ...extra });
+
+  /* ---------- slicers ---------- */
+  const pageFilters = {};
+  function buildSlicers(page, onChange) {
+    const root = el(`#page-${page}`);
+    const filters = (pageFilters[page] = {});
+    els(".slicer[data-slicer]", root).forEach((s) => {
+      const key = s.dataset.slicer;
+      filters[key] = new Set();
+      const opts = OPTIONS[key];
+      s.innerHTML = `
+        <span class="slicer-label">${esc(s.dataset.label)}</span>
+        <button type="button" class="slicer-btn"><span class="value">All</span><span class="caret">&#9660;</span></button>
+        <div class="slicer-panel">
+          ${s.dataset.search ? '<input type="search" placeholder="Search">' : ""}
+          <label class="select-all"><input type="checkbox" data-all> Select all</label>
+          <div class="slicer-options">${opts.map((o) => `<label><input type="checkbox" value="${esc(o)}"> ${esc(o)}</label>`).join("")}</div>
+        </div>`;
+      const btn = el(".slicer-btn", s);
+      const sync = () => {
+        const set = filters[key];
+        el(".value", btn).textContent = !set.size ? "All" : set.size === 1 ? [...set][0] : `Multiple selections (${set.size})`;
+        s.classList.toggle("filtered", set.size > 0);
+        els(".slicer-options input", s).forEach((i) => (i.checked = set.has(i.value)));
+        el("[data-all]", s).checked = set.size === 0;
+      };
+      s._sync = sync;
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const open = !s.classList.contains("open");
+        els(".slicer.open").forEach((o) => o.classList.remove("open"));
+        s.classList.toggle("open", open);
+      });
+      el(".slicer-panel", s).addEventListener("click", (e) => e.stopPropagation());
+      el(".slicer-panel", s).addEventListener("change", (e) => {
+        const set = filters[key];
+        if (e.target.dataset.all !== undefined) set.clear();
+        else if (e.target.checked) set.add(e.target.value);
+        else set.delete(e.target.value);
+        sync(); onChange();
+      });
+      const search = el("input[type=search]", s);
+      if (search) search.addEventListener("input", () => {
+        const q = search.value.toLowerCase();
+        els(".slicer-options label", s).forEach((l) => (l.style.display = l.textContent.toLowerCase().includes(q) ? "" : "none"));
+      });
+      sync();
+    });
+    const reset = el("[data-reset]", root);
+    reset.addEventListener("click", () => {
+      Object.values(filters).forEach((set) => set.clear());
+      els(".slicer[data-slicer]", root).forEach((s) => s._sync());
+      onChange();
+    });
+    return filters;
+  }
+  document.addEventListener("click", () => els(".slicer.open").forEach((o) => o.classList.remove("open")));
+
+  /* ---------- page 1: executive summary ---------- */
+  function renderExecutive() {
+    const f = pageFilters.executive;
+    const rows = installs.filter((r) => matches(r, f));
+    const total = rows.length;
+    const byStatus = Object.fromEntries(STATUS.map((s) => [s, 0]));
+    rows.forEach((r) => byStatus[r.status]++);
+    const past = byStatus["Past EOS"];
+    const p = ratio(past, total);
+    const upcoming = rows.filter((r) => r.within6m).length;
+    const proj6 = ratio(past + upcoming, total);
+    const series = cubeSeries(f).get("all");
+    const prev = series ? series.get(SNAP_PREV) : null;
+    const pPrev = prev ? ratio(prev.past, prev.n) : null;
+    const delta = p != null && pPrev != null ? p - pPrev : null;
+    const nPrev = prev ? prev.n : null;
+
+    kpi("#kpi-total", { label: "Total installs", value: n0(total), sub: nPrev != null ? `${deltaCount(total - nPrev)} vs prior snapshot` : "", accent: C.text });
+    kpi("#kpi-pct", {
+      label: "% of installs past EOS", value: pct(p), color: ragText(p),
+      badge: { text: { green: "On target", amber: "Watch", red: "Off target" }[rag(p)] || "", cls: `rag-${rag(p)}` },
+      sub: `${deltaPP(delta)} vs prior snapshot &middot; target &le; 3%`, accent: ragColor(p),
+    });
+    kpi("#kpi-past", { label: "Installs past EOS", value: n0(past), sub: `${n0(byStatus.Unknown)} installs with unknown EOS`, accent: C.red });
+    kpi("#kpi-upcoming", {
+      label: "Reaching EOS within 6 months", value: n0(upcoming), accent: C.gold,
+      sub: `by ${longDate(SNAP_6M)} &middot; projected <b style="color:${ragText(proj6)}">${pct(proj6)}</b> past EOS if not remediated`,
+    });
+
+    chart("chart-donut").setOption({
+      textStyle: baseText,
+      tooltip: tooltip({ trigger: "item", formatter: (d) => `${d.marker}${d.name}<br><b>${n0(d.value)}</b> installs (${d.percent.toFixed(1)}%)` }),
+      legend: { orient: "vertical", right: 0, top: "middle", icon: "circle", itemWidth: 10, textStyle: { fontFamily: FONT, color: C.text },
+        formatter: (name) => `${name}  ${pct(ratio(byStatus[name], total))}` },
+      series: [{
+        type: "pie", radius: ["52%", "80%"], center: ["32%", "50%"], avoidLabelOverlap: true, label: { show: true, position: "center",
+          formatter: () => `{v|${pct(p)}}\n{l|past EOS}`, rich: { v: { fontSize: 22, lineHeight: 28, fontWeight: 700, color: ragText(p), fontFamily: FONT }, l: { fontSize: 11, lineHeight: 14, color: C.muted, fontFamily: FONT } } },
+        emphasis: { scale: true, scaleSize: 4, label: { show: true } },
+        itemStyle: { borderColor: "#fff", borderWidth: 2 },
+        data: ["Supported", "Extended", "Past EOS", "Unknown"].map((s) => ({ name: s, value: byStatus[s], itemStyle: { color: STATUS_COLORS[s] } })),
+      }],
+    }, true);
+
+    const trend = D.snapshots.map((s) => { const c = series ? series.get(s) : { n: 0, past: 0 }; return ratio(c.past, c.n); });
+    chart("chart-trend").setOption({
+      textStyle: baseText, grid: { left: 44, right: 64, top: 18, bottom: 26 },
+      tooltip: tooltip({ trigger: "axis", formatter: (a) => { const i = a[0].dataIndex; const c = series.get(D.snapshots[i]);
+        return `${longDate(D.snapshots[i])}<br><b>${pct(trend[i], 2)}</b> past EOS<br>${n0(c.past)} of ${n0(c.n)} installs`; } }),
+      xAxis: { ...axisCommon, type: "category", boundaryGap: false, data: D.snapshots.map((s) => iso(s)), axisLabel: { ...axisCommon.axisLabel, formatter: (v) => { const t = new Date(v); return `${MONTHS[t.getUTCMonth()]} ${t.getUTCDate()}`; } } },
+      yAxis: { ...axisCommon, type: "value", min: 0, max: (v) => Math.max(0.06, Math.ceil((v.max + 0.005) * 50) / 50), interval: 0.02, axisLabel: { ...axisCommon.axisLabel, formatter: (v) => pct(v, 0) } },
+      series: [{
+        type: "line", data: trend, smooth: false, symbol: "circle", symbolSize: 7, lineStyle: { color: C.red, width: 3 },
+        itemStyle: { color: C.red, borderColor: "#fff", borderWidth: 1.5 },
+        label: { show: true, position: "top", formatter: (d) => pct(d.value), color: C.text, fontFamily: FONT, fontSize: 11 },
+        areaStyle: { color: "rgba(215,30,40,.08)" },
+        markLine: { symbol: "none", silent: true, data: [
+          { yAxis: GREEN_MAX, lineStyle: { color: C.green, type: "dashed", width: 1.5 }, label: { formatter: "3% target", color: C.green, fontFamily: FONT, fontSize: 11 } },
+          { yAxis: AMBER_MAX, lineStyle: { color: C.redDark, type: "dashed", width: 1.5 }, label: { formatter: "5% limit", color: C.redDark, fontFamily: FONT, fontSize: 11 } },
+        ] },
+      }],
+    }, true);
+
+    const prodCounts = new Map();
+    rows.forEach((r) => { const c = prodCounts.get(r.product) || { past: 0, n: 0 }; c.n++; if (r.past) c.past++; prodCounts.set(r.product, c); });
+    const top = [...prodCounts.entries()].filter(([, c]) => c.past).sort((a, b) => b[1].past - a[1].past || a[0].localeCompare(b[0])).slice(0, 10).reverse();
+    chart("chart-top10").setOption({
+      textStyle: baseText, grid: { left: 8, right: 36, top: 4, bottom: 4, containLabel: true },
+      tooltip: tooltip({ trigger: "axis", axisPointer: { type: "shadow" }, formatter: (a) => { const c = top[a[0].dataIndex][1];
+        return `${a[0].name}<br><b>${n0(c.past)}</b> past EOS of ${n0(c.n)} installs (${pct(c.past / c.n)})`; } }),
+      xAxis: { ...axisCommon, type: "value", show: false },
+      yAxis: { ...axisCommon, type: "category", data: top.map((t) => t[0]), axisLine: { show: false }, axisLabel: { ...axisCommon.axisLabel, color: C.text, fontSize: 11.5 } },
+      series: [{ type: "bar", data: top.map((t) => t[1].past), barWidth: "62%", itemStyle: { color: C.red, borderRadius: [0, 3, 3, 0] },
+        label: { show: true, position: "right", color: C.text, fontFamily: FONT, fontSize: 11 } }],
+    }, true);
+
+    const snapT = toDate(SNAP);
+    const months = Array.from({ length: 6 }, (_, i) => { const m = snapT.getUTCMonth() + 1 + i; return { y: snapT.getUTCFullYear() + Math.floor(m / 12), m: m % 12 }; });
+    const cols = months.map(({ y, m }, i) => {
+      const start = i === 0 ? SNAP : endOfMonth(y, m - 1);
+      const end = endOfMonth(y, m);
+      return rows.filter((r) => r.eff != null && r.eff > start && r.eff <= end).length;
+    });
+    let running = past;
+    const cumulative = cols.map((c) => ratio((running += c), total));
+    chart("chart-upcoming").setOption({
+      textStyle: baseText, grid: { left: 44, right: 48, top: 30, bottom: 26 },
+      legend: { top: 0, right: 0, itemWidth: 12, itemHeight: 8, textStyle: { fontFamily: FONT, color: C.text, fontSize: 11 } },
+      tooltip: tooltip({ trigger: "axis", formatter: (a) => { const i = a[0].dataIndex;
+        return `${a[0].name}<br>${a[0].marker}${n0(cols[i])} installs cross EOS<br>${a[1].marker}Projected <b>${pct(cumulative[i], 2)}</b> past EOS`; } }),
+      xAxis: { ...axisCommon, type: "category", data: months.map(({ y, m }) => monthLabel(y, m)) },
+      yAxis: [
+        { ...axisCommon, type: "value", name: "Installs", splitNumber: 4, nameTextStyle: { color: C.muted, fontFamily: FONT, fontSize: 11 } },
+        { ...axisCommon, type: "value", min: 0, max: (v) => Math.max(0.1, Math.ceil((v.max + 0.01) * 20) / 20), interval: 0.05, splitLine: { show: false }, axisLabel: { ...axisCommon.axisLabel, formatter: (v) => pct(v, 0) } },
+      ],
+      series: [
+        { name: "Installs crossing EOS", type: "bar", data: cols, barWidth: "48%", itemStyle: { color: C.gold, borderRadius: [3, 3, 0, 0] },
+          label: { show: true, position: "insideBottom", distance: 4, color: C.text, fontFamily: FONT, fontSize: 11, fontWeight: 600 } },
+        { name: "Cumulative projected % past EOS", type: "line", yAxisIndex: 1, data: cumulative, symbol: "circle", symbolSize: 7,
+          lineStyle: { color: C.red, width: 3 }, itemStyle: { color: C.red },
+          label: { show: true, position: "top", formatter: (d) => pct(d.value), color: C.redDark, fontFamily: FONT, fontSize: 11, fontWeight: 700 } },
+        { name: "5% limit", type: "line", yAxisIndex: 1, data: cols.map(() => AMBER_MAX), symbol: "none", lineStyle: { color: C.redDark, type: "dashed", width: 1.5 }, itemStyle: { color: C.redDark }, tooltip: { show: false } },
+      ],
+    }, true);
+  }
+
+  function kpi(sel, { label, value, sub = "", color = C.text, badge, accent }) {
+    const node = el(sel);
+    node.style.setProperty("--kpi-accent", accent || C.text);
+    node.innerHTML = `<div class="label">${label}</div>
+      <div class="value" style="color:${color}">${value}${badge && badge.text ? `<span class="badge ${badge.cls}">${badge.text}</span>` : ""}</div>
+      <div class="sub">${sub}</div>`;
+  }
+  const deltaPP = (d) => d == null ? "–" : `<span class="${d > 0.0005 ? "delta-up" : d < -0.0005 ? "delta-down" : "delta-flat"}">${d > 0.0005 ? "▲" : d < -0.0005 ? "▼" : "■"} ${(Math.abs(d) * 100).toFixed(1)} pp</span>`;
+  const deltaCount = (d) => `${d >= 0 ? "+" : "−"}${n0(Math.abs(d))}`;
+
+  /* ---------- page 2: risk by organization ---------- */
+  const orgState = { expanded: new Set(), selectedOrg: null };
+  function sparkline(values) {
+    const w = 64, h = 18, vals = values.map((v) => v ?? 0);
+    const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
+    const pts = vals.map((v, i) => `${(i / (vals.length - 1)) * w},${h - 2 - ((v - lo) / span) * (h - 4)}`).join(" ");
+    const last = pts.split(" ").pop().split(",");
+    return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="${C.muted}" stroke-width="1.5"/><circle cx="${last[0]}" cy="${last[1]}" r="2.5" fill="${C.red}"/></svg>`;
+  }
+  function trendCell(series) {
+    const vals = D.snapshots.map((s) => { const c = series.get(s); return ratio(c.past, c.n); });
+    const d = vals[vals.length - 1] != null && vals[vals.length - 2] != null ? vals[vals.length - 1] - vals[vals.length - 2] : null;
+    return `<td>${deltaPP(d)}</td><td>${sparkline(vals)}</td>`;
+  }
+  function renderOrganization() {
+    const f = pageFilters.organization;
+    const rows = installs.filter((r) => matches(r, f));
+    const orgSeries = cubeSeries(f, (c) => c.orgIdx);
+    const groupSeries = cubeSeries(f, (c) => c.groupIdx);
+    const allSeries = cubeSeries(f).get("all");
+
+    const agg = (list) => {
+      const nc = list.filter((r) => r.daysNC != null);
+      return { n: list.length, past: list.filter((r) => r.past).length, nc: nc.length,
+        avgNC: nc.length ? nc.reduce((s, r) => s + r.daysNC, 0) / nc.length : null, maxNC: nc.length ? Math.max(...nc.map((r) => r.daysNC)) : null };
+    };
+    const orgs = D.orgs.map((o, i) => {
+      const list = rows.filter((r) => r.orgIdx === i);
+      const groups = D.groups.map((g, gi) => ({ g, gi })).filter(({ g }) => g[1] === i).map(({ g, gi }) => ({ idx: gi, name: g[0], mgr: g[2], ...agg(list.filter((r) => r.groupIdx === gi)) }));
+      return { idx: i, name: o[0], mgr: o[1], ...agg(list), groups };
+    }).filter((o) => o.n);
+    const sortKey = (a, b) => (ratio(b.past, b.n) - ratio(a.past, a.n)) || b.past - a.past;
+    orgs.sort(sortKey).forEach((o) => o.groups.sort(sortKey));
+    const est = agg(rows);
+    const pEst = ratio(est.past, est.n);
+
+    const ragCount = (items) => items.filter((x) => x.n).reduce((acc, x) => (acc[rag(ratio(x.past, x.n))]++, acc), { green: 0, amber: 0, red: 0 });
+    const ragDots = (c) => `<div class="rag-dots"><span style="color:${C.green}">${c.green}<small>green</small></span><span style="color:${C.amberText}">${c.amber}<small>amber</small></span><span style="color:${C.red}">${c.red}<small>red</small></span></div>`;
+    const prevEst = allSeries ? allSeries.get(SNAP_PREV) : null;
+    kpi("#kpi-org-estate", { label: "Estate % past EOS", value: pct(pEst), color: ragText(pEst), accent: ragColor(pEst),
+      sub: `${n0(est.past)} of ${n0(est.n)} installs &middot; ${deltaPP(prevEst ? pEst - ratio(prevEst.past, prevEst.n) : null)} vs prior` });
+    const oc = ragCount(orgs), gc = ragCount(orgs.flatMap((o) => o.groups));
+    kpi("#kpi-org-orgs", { label: `CIO orgs by RAG (${orgs.length})`, value: ragDots(oc), accent: C.red });
+    kpi("#kpi-org-groups", { label: `Managed-by groups by RAG (${orgs.reduce((s, o) => s + o.groups.filter((g) => g.n).length, 0)})`, value: ragDots(gc), accent: C.gold });
+    kpi("#kpi-org-days", { label: "Avg days non-compliant", value: est.avgNC == null ? "–" : n0(Math.round(est.avgNC)), accent: C.text,
+      sub: `across ${n0(est.nc)} non-compliant installs &middot; longest ${est.maxNC == null ? "–" : n0(est.maxNC)} days` });
+
+    const tr = (lvl, cls, label, mgr, x, series, key) => {
+      const p = ratio(x.past, x.n);
+      return `<tr class="lvl-${lvl} ${cls}" ${key != null ? `data-org="${key}"` : ""}>
+        <td>${label}</td><td class="left muted">${esc(mgr)}</td><td>${n0(x.n)}</td><td>${n0(x.past)}</td>
+        <td class="rag rag-${rag(p)}">${pct(p)}</td>${series ? trendCell(series) : "<td></td><td></td>"}
+        <td>${x.avgNC == null ? "–" : n0(Math.round(x.avgNC))}</td></tr>`;
+    };
+    let html = `<table class="mx ${orgState.selectedOrg != null ? "has-selection" : ""}"><thead><tr><th>CIO org / Managed-by group</th><th style="text-align:left">Manager</th><th>Installs</th><th>Past EOS</th>
+      <th>% past EOS</th><th>vs prior</th><th>Trend</th><th title="Average days non-compliant">Avg days NC</th></tr></thead><tbody>`;
+    orgs.forEach((o) => {
+      const open = orgState.expanded.has(o.idx);
+      const label = `<span class="toggle" data-toggle="${o.idx}">${open ? "−" : "+"}</span>${esc(o.name)}`;
+      html += tr(0, `selectable ${orgState.selectedOrg === o.idx ? "selected" : ""}`, label, o.mgr, o, orgSeries.get(o.idx), o.idx);
+      if (open) o.groups.filter((g) => g.n).forEach((g) => (html += tr(1, "", esc(g.name), g.mgr, g, groupSeries.get(g.idx))));
+    });
+    html += tr(0, "total", "Total", "", est, allSeries) + "</tbody></table>";
+    const wrap = el("#org-matrix");
+    wrap.innerHTML = html;
+    els("[data-toggle]", wrap).forEach((t) => t.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const i = +t.dataset.toggle;
+      orgState.expanded.has(i) ? orgState.expanded.delete(i) : orgState.expanded.add(i);
+      renderOrganization();
+    }));
+    els("tr[data-org]", wrap).forEach((t) => t.addEventListener("click", () => {
+      const i = +t.dataset.org;
+      orgState.selectedOrg = orgState.selectedOrg === i ? null : i;
+      renderOrganization();
+    }));
+
+    const groupBars = orgs.filter((o) => orgState.selectedOrg == null || o.idx === orgState.selectedOrg)
+      .flatMap((o) => o.groups).filter((g) => g.avgNC != null).sort((a, b) => a.avgNC - b.avgNC);
+    el(".js-org-filter-hint").textContent = orgState.selectedOrg == null ? "all CIO orgs · bar colour = group RAG" : `filtered to ${D.orgs[orgState.selectedOrg][0]}`;
+    chart("chart-days").setOption({
+      textStyle: baseText, grid: { left: 8, right: 44, top: 4, bottom: 4, containLabel: true },
+      tooltip: tooltip({ trigger: "axis", axisPointer: { type: "shadow" }, formatter: (a) => { const g = groupBars[a[0].dataIndex];
+        return `${g.name}<br>Avg <b>${n0(Math.round(g.avgNC))}</b> days non-compliant<br>Longest ${n0(g.maxNC)} days &middot; ${g.nc} installs<br>${pct(ratio(g.past, g.n))} past EOS`; } }),
+      xAxis: { ...axisCommon, type: "value", show: false },
+      yAxis: { ...axisCommon, type: "category", data: groupBars.map((g) => g.name), axisLine: { show: false }, axisLabel: { ...axisCommon.axisLabel, color: C.text, fontSize: 11 } },
+      series: [{ type: "bar", barMaxWidth: 18, barWidth: "64%", data: groupBars.map((g) => ({ value: Math.round(g.avgNC), itemStyle: { color: ragColor(ratio(g.past, g.n)), borderRadius: [0, 3, 3, 0] } })),
+        label: { show: true, position: "right", color: C.text, fontFamily: FONT, fontSize: 11, formatter: (d) => n0(d.value) } }],
+    }, true);
+  }
+
+  /* ---------- page 3: lifecycle detail & remediation ---------- */
+  const detailState = { view: "product", expanded: new Set(), node: null, sort: { key: "daysPast", dir: -1 } };
+  const LEVELS = {
+    product: [
+      { key: (r) => r.product, label: (r) => `${esc(r.product)} <span class="muted">· ${esc(r.mfr)}</span>`, name: "Product" },
+      { key: (r) => r.version, label: (r) => `Version ${esc(r.version)}`, name: "Version" },
+      { key: (r) => r.host, label: (r) => esc(r.host), name: "Host" },
+    ],
+    org: [
+      { key: (r) => r.org, label: (r) => esc(r.org), name: "CIO org" },
+      { key: (r) => r.group, label: (r) => esc(r.group), name: "Managed-by group" },
+      { key: (r) => r.host, label: (r) => esc(r.host), name: "Host" },
+    ],
+  };
+  function detailRows(includeNode = true) {
+    const f = pageFilters.detail;
+    const levels = LEVELS[detailState.view];
+    return installs.filter((r) => matches(r, f) && (!includeNode || !detailState.node || detailState.node.every((k, i) => levels[i].key(r) === k)));
+  }
+  function groupBy(list, fn) { const m = new Map(); list.forEach((r) => { const k = fn(r); if (!m.has(k)) m.set(k, []); m.get(k).push(r); }); return m; }
+  function nodeStats(list) {
+    const past = list.filter((r) => r.past).length;
+    const versions = new Set(list.map((r) => (detailState.view === "org" ? `${r.product} ${r.version}` : r.version)));
+    const effs = list.map((r) => r.eff).filter((v) => v != null);
+    const dp = list.map((r) => r.daysPast).filter((v) => v != null);
+    const nc = list.map((r) => r.daysNC).filter((v) => v != null);
+    return { n: list.length, past, p: ratio(past, list.length), version: versions.size === 1 ? [...versions][0] : `Multiple (${versions.size})`,
+      eos: effs.length ? Math.min(...effs) : null, daysPast: dp.length ? Math.max(...dp) : null, daysNC: nc.length ? Math.max(...nc) : null };
+  }
+  function renderDetailMatrix() {
+    const levels = LEVELS[detailState.view];
+    el(".js-matrix-title").textContent = levels.map((l) => l.name).join(" → ");
+    const rows = detailRows(false);
+    const sortNodes = (m) => [...m.entries()].map(([k, list]) => ({ k, list, s: nodeStats(list) }))
+      .sort((a, b) => b.s.past - a.s.past || (b.s.daysPast ?? -1) - (a.s.daysPast ?? -1) || String(a.k).localeCompare(String(b.k), undefined, { numeric: true }));
+    const isSel = (path) => detailState.node && detailState.node.length === path.length && detailState.node.every((k, i) => k === path[i]);
+    const line = (lvl, path, label, s, leaf) => {
+      const id = JSON.stringify(path);
+      const open = detailState.expanded.has(id);
+      return `<tr class="lvl-${lvl} selectable ${isSel(path) ? "selected" : ""}" data-path='${esc(id)}'>
+        <td><span class="toggle ${leaf ? "leaf" : ""}" ${leaf ? "" : `data-expand='${esc(id)}'`}>${leaf ? "" : open ? "−" : "+"}</span>${label}</td>
+        <td>${n0(s.n)}</td><td>${n0(s.past)}</td><td class="rag rag-${rag(s.p)}">${pct(s.p)}</td>
+        <td class="left">${esc(s.version)}</td><td>${s.eos == null ? '<span class="muted">Unknown</span>' : iso(s.eos)}</td>
+        <td>${s.daysPast == null ? "–" : n0(s.daysPast)}</td><td>${s.daysNC == null ? "–" : n0(s.daysNC)}</td></tr>`;
+    };
+    let html = `<table class="mx ${detailState.node ? "has-selection" : ""}"><thead><tr><th>${levels.map((l) => l.name).join(" / ")}</th><th>Installs</th><th>Past EOS</th><th>% past EOS</th>
+      <th style="text-align:left">Version</th><th>Effective EOS date</th><th>Days past EOS</th><th>Days non-compliant</th></tr></thead><tbody>`;
+    const walk = (list, depth, path) => {
+      sortNodes(groupBy(list, levels[depth].key)).forEach(({ k, list: sub, s }) => {
+        const p = [...path, k];
+        const leaf = depth === levels.length - 1;
+        html += line(depth, p, levels[depth].label(sub[0]), s, leaf);
+        if (!leaf && detailState.expanded.has(JSON.stringify(p))) walk(sub, depth + 1, p);
+      });
+    };
+    walk(rows, 0, []);
+    const t = nodeStats(rows);
+    html += `<tr class="total"><td>Total</td><td>${n0(t.n)}</td><td>${n0(t.past)}</td><td class="rag rag-${rag(t.p)}">${pct(t.p)}</td><td></td>
+      <td>${t.eos == null ? "" : iso(t.eos)}</td><td>${t.daysPast == null ? "–" : n0(t.daysPast)}</td><td>${t.daysNC == null ? "–" : n0(t.daysNC)}</td></tr></tbody></table>`;
+    const wrap = el("#detail-matrix");
+    const scroll = wrap.scrollTop;
+    wrap.innerHTML = html;
+    wrap.scrollTop = scroll;
+    els("[data-expand]", wrap).forEach((tg) => tg.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = tg.dataset.expand;
+      detailState.expanded.has(id) ? detailState.expanded.delete(id) : detailState.expanded.add(id);
+      renderDetailMatrix();
+    }));
+    els("tr[data-path]", wrap).forEach((tr) => tr.addEventListener("click", () => {
+      const path = JSON.parse(tr.dataset.path);
+      detailState.node = isSel(path) ? null : path;
+      renderDetailMatrix(); renderWorklist();
+    }));
+  }
+
+  /* Worklist columns behave like Power BI field parameters: the chosen dimension
+   * columns set the grain (one row per distinct combination) and measures aggregate. */
+  const sum = (list, f) => list.reduce((s, r) => s + (f(r) ? 1 : 0), 0);
+  const maxOf = (list, k) => { const v = list.map((r) => r[k]).filter((x) => x != null); return v.length ? Math.max(...v) : null; };
+  const avgOf = (list, k) => { const v = list.map((r) => r[k]).filter((x) => x != null); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null; };
+  const WL_DIMS = [
+    { key: "id", label: "Install ID", csv: "install_id" },
+    { key: "host", label: "Host", csv: "host_name" },
+    { key: "ciId", label: "CI ID", csv: "ci_id" },
+    { key: "ciType", label: "CI type", csv: "ci_type" },
+    { key: "env", label: "Environment", csv: "environment" },
+    { key: "crit", label: "Criticality", csv: "business_criticality" },
+    { key: "city", label: "City", csv: "city" },
+    { key: "country", label: "Country", csv: "country" },
+    { key: "product", label: "Product", csv: "normalized_product_name" },
+    { key: "version", label: "Version", csv: "normalized_version" },
+    { key: "mfr", label: "Manufacturer", csv: "normalized_manufacturer" },
+    { key: "edition", label: "Edition", csv: "edition" },
+    { key: "cat", label: "Product category", csv: "product_category" },
+    { key: "group", label: "Managed-by group", csv: "managed_by_group" },
+    { key: "groupMgr", label: "Group manager", csv: "managed_by_group_manager_name" },
+    { key: "org", label: "CIO org", csv: "cio_org_name" },
+    { key: "orgMgr", label: "CIO org manager", csv: "cio_org_manager_name" },
+    { key: "status", label: "EOS status", csv: "eos_status" },
+    { key: "eol", label: "End of life", csv: "end_of_life_date", date: true },
+    { key: "ext", label: "Extended support end", csv: "extended_support_end_date", date: true },
+    { key: "obs", label: "Obsolete date", csv: "obsolete_date", date: true },
+    { key: "eff", label: "Effective EOS", csv: "effective_eos_date", date: true },
+    { key: "basis", label: "EOS basis", csv: "effective_eos_basis" },
+    { key: "aging", label: "Aging start", csv: "aging_start_date", date: true },
+  ];
+  const WL_MEASURES = [
+    { key: "installs", label: "Installs", csv: "installs", agg: (l) => l.length },
+    { key: "pastCount", label: "Past EOS", csv: "installs_past_eos", agg: (l) => sum(l, (r) => r.past) },
+    { key: "pastPct", label: "% past EOS", csv: "pct_past_eos", agg: (l) => ratio(sum(l, (r) => r.past), l.length), pct: true },
+    { key: "upcoming", label: "Reaching EOS ≤ 6 mo", short: "EOS ≤ 6 mo", csv: "reaching_eos_within_6_months", agg: (l) => sum(l, (r) => r.within6m) },
+    { key: "hosts", label: "Hosts", csv: "distinct_hosts", agg: (l) => new Set(l.map((r) => r.host)).size },
+    { key: "daysPast", label: "Days past EOS (max)", short: "Days past EOS", csv: "max_days_past_eos", agg: (l) => maxOf(l, "daysPast") },
+    { key: "daysNC", label: "Days non-compliant (max)", short: "Days non-compliant", csv: "max_days_non_compliant", agg: (l) => maxOf(l, "daysNC") },
+    { key: "avgNC", label: "Days non-compliant (avg)", short: "Avg days NC", csv: "avg_days_non_compliant", agg: (l) => avgOf(l, "daysNC") },
+  ].map((m) => ({ ...m, num: true }));
+  const WL_PRESETS = {
+    "Host / install": { dims: ["id", "host", "env", "crit", "product", "version", "group", "status", "eff"], measures: ["daysPast", "daysNC"] },
+    "Host": { dims: ["host", "ciType", "env", "crit", "group", "org"], measures: ["installs", "pastCount", "pastPct", "upcoming", "daysPast", "daysNC"] },
+    "Product version": { dims: ["product", "version", "mfr", "eff", "status"], measures: ["installs", "hosts", "pastCount", "upcoming", "daysPast"] },
+    "Managed-by group": { dims: ["org", "group", "groupMgr"], measures: ["installs", "hosts", "pastCount", "pastPct", "upcoming", "avgNC", "daysNC"] },
+  };
+  const DEFAULT_PRESET = "Host / install";
+  const DEFAULT_SORT = { key: "daysPast", dir: -1 };
+  const wl = { dims: [...WL_PRESETS[DEFAULT_PRESET].dims], measures: [...WL_PRESETS[DEFAULT_PRESET].measures], bookmark: DEFAULT_PRESET };
+  // As in Power BI, a field-parameter slicer with nothing selected shows every field.
+  const activeKeys = (group) => (wl[group].length ? wl[group] : (group === "dims" ? WL_DIMS : WL_MEASURES).map((c) => c.key));
+  const wlColumns = () => [
+    ...WL_DIMS.filter((d) => activeKeys("dims").includes(d.key)),
+    ...WL_MEASURES.filter((m) => activeKeys("measures").includes(m.key)),
+  ];
+  function worklistRows() {
+    const dims = WL_DIMS.filter((d) => activeKeys("dims").includes(d.key));
+    const measures = WL_MEASURES.filter((m) => activeKeys("measures").includes(m.key));
+    const groups = groupBy(detailRows(), (r) => dims.map((d) => r[d.key] ?? "").join("\u0001"));
+    return [...groups.values()].map((list) => {
+      const row = {};
+      dims.forEach((d) => (row[d.key] = list[0][d.key]));
+      measures.forEach((m) => (row[m.key] = m.agg(list)));
+      return row;
+    });
+  }
+  function sortedWorklist() {
+    const cols = wlColumns();
+    if (!cols.some((c) => c.key === detailState.sort.key)) {
+      const fallback = cols.find((c) => c.num) || cols[0];
+      detailState.sort = { key: fallback ? fallback.key : "", dir: fallback && fallback.num ? -1 : 1 };
+    }
+    const { key, dir } = detailState.sort;
+    const tie = cols.find((c) => !c.num);
+    return worklistRows().sort((a, b) => {
+      const va = a[key], vb = b[key];
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      const c = (typeof va === "number" ? va - vb : String(va).localeCompare(String(vb), undefined, { numeric: true })) * dir;
+      return c || (tie ? String(a[tie.key]).localeCompare(String(b[tie.key]), undefined, { numeric: true }) : 0);
+    });
+  }
+  const cellText = (c, v) => (v == null || v === "" ? "" : c.date ? iso(v) : c.pct ? pct(v) : c.num ? v : v);
+
+  function buildFieldParamSlicer(node, group, items) {
+    node.innerHTML = `
+      <span class="slicer-label">${esc(node.dataset.label)}</span>
+      <button type="button" class="slicer-btn"><span class="value"></span><span class="caret">&#9660;</span></button>
+      <div class="slicer-panel">
+        <input type="search" placeholder="Search">
+        <label class="select-all"><input type="checkbox" data-all> Select all</label>
+        <div class="slicer-options">${items.map((c) => `<label><input type="checkbox" value="${c.key}"> ${esc(c.label)}</label>`).join("")}</div>
+      </div>`;
+    const order = items.map((c) => c.key);
+    node._sync = () => {
+      const sel = wl[group];
+      el(".value", node).textContent = !sel.length || sel.length === order.length ? "All" : sel.length === 1 ? items.find((c) => c.key === sel[0]).label : `Multiple selections (${sel.length})`;
+      els(".slicer-options input", node).forEach((i) => (i.checked = sel.includes(i.value)));
+      el("[data-all]", node).checked = sel.length === order.length;
+    };
+    el(".slicer-btn", node).addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = !node.classList.contains("open");
+      els(".slicer.open").forEach((o) => o.classList.remove("open"));
+      node.classList.toggle("open", open);
+    });
+    el(".slicer-panel", node).addEventListener("click", (e) => e.stopPropagation());
+    el(".slicer-panel", node).addEventListener("change", (e) => {
+      if (e.target.dataset.all !== undefined) wl[group] = e.target.checked ? [...order] : [];
+      else if (e.target.checked) wl[group].push(e.target.value);
+      else wl[group].splice(wl[group].indexOf(e.target.value), 1);
+      wl[group].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+      wl.bookmark = null;
+      node._sync(); renderBookmarks(); renderWorklist();
+    });
+    const search = el("input[type=search]", node);
+    search.addEventListener("input", () => {
+      const q = search.value.toLowerCase();
+      els(".slicer-options label", node).forEach((l) => (l.style.display = l.textContent.toLowerCase().includes(q) ? "" : "none"));
+    });
+    node._sync();
+  }
+  function renderBookmarks() {
+    const box = el("#wl-bookmarks");
+    box.innerHTML = Object.keys(WL_PRESETS).map((p) => `<button type="button" data-bookmark="${esc(p)}" class="${wl.bookmark === p ? "active" : ""}">${esc(p)}</button>`).join("");
+    els("[data-bookmark]", box).forEach((b) => b.addEventListener("click", () => applyBookmark(b.dataset.bookmark)));
+  }
+  function applyBookmark(name) {
+    const p = WL_PRESETS[name];
+    wl.dims = [...p.dims]; wl.measures = [...p.measures]; wl.bookmark = name;
+    detailState.sort = { ...DEFAULT_SORT };
+    el("#wl-dims")._sync(); el("#wl-measures")._sync(); renderBookmarks(); renderWorklist();
+  }
+
+  const WL_CHUNK = 80;
+  const wlCell = (c, v) => {
+    if (c.key === "status") return `<td class="status-cell status-${STATUS_CLASS[v]}">${v}</td>`;
+    if (c.key === "eff") return `<td>${v == null ? '<span class="muted">Unknown</span>' : iso(v)}</td>`;
+    if (c.date) return `<td>${v == null ? "" : iso(v)}</td>`;
+    if (c.pct) return `<td class="rag rag-${rag(v)}">${pct(v)}</td>`;
+    if (c.num) return `<td>${v == null ? "" : n0(v)}</td>`;
+    return `<td class="left">${esc(v ?? "")}</td>`;
+  };
+  function renderWorklist() {
+    const cols = wlColumns();
+    const list = sortedWorklist();
+    const { key, dir } = detailState.sort;
+    const dimLabels = WL_DIMS.filter((d) => activeKeys("dims").includes(d.key)).map((d) => d.label);
+    el(".js-grain").textContent = `one row per ${dimLabels.join(" × ")}`;
+    const all = detailRows();
+    const totals = Object.fromEntries(WL_MEASURES.map((m) => [m.key, m.agg(all)]));
+    const dimCount = cols.filter((c) => !c.num).length;
+    const totalRow = `<tr class="total">${cols.map((c, i) => (c.num ? wlCell(c, totals[c.key]) : i === 0 ? '<td class="left">Total</td>' : "<td></td>")).join("")}</tr>`;
+    const wrap = el("#worklist");
+    wrap.innerHTML = `<table class="mx"><thead><tr>${cols.map((c) =>
+      `<th class="sortable" data-sort="${c.key}" style="text-align:${c.num || c.date ? "right" : "left"}" title="${esc(c.label)}">${esc(c.short || c.label)}${c.key === key ? ` <span class="sort-ind">${dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("")}</tr></thead>
+      <tbody></tbody><tfoot>${dimCount || list.length ? totalRow : ""}</tfoot></table>`;
+    const body = el("tbody", wrap);
+    let shown = 0;
+    const more = () => {
+      body.insertAdjacentHTML("beforeend", list.slice(shown, shown + WL_CHUNK).map((r) => `<tr>${cols.map((c) => wlCell(c, r[c.key])).join("")}</tr>`).join(""));
+      shown += WL_CHUNK;
+    };
+    if (list.length) more();
+    else body.innerHTML = `<tr><td colspan="${cols.length}" class="empty">No data for the current filters</td></tr>`;
+    wrap.scrollTop = 0;
+    wrap.onscroll = () => { if (shown < list.length && wrap.scrollTop + wrap.clientHeight > wrap.scrollHeight - 200) more(); };
+    els("th[data-sort]", wrap).forEach((th) => th.addEventListener("click", () => {
+      const k = th.dataset.sort;
+      detailState.sort = { key: k, dir: detailState.sort.key === k ? -detailState.sort.dir : cols.find((c) => c.key === k).num ? -1 : 1 };
+      wl.bookmark = null;
+      renderBookmarks(); renderWorklist();
+    }));
+  }
+  function exportCsv() {
+    const q = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const cols = wlColumns();
+    const lines = [cols.map((c) => q(c.label)).join(",")];
+    sortedWorklist().forEach((r) => lines.push(cols.map((c) => q(c.pct ? (r[c.key] == null ? "" : r[c.key].toFixed(4)) : cellText(c, r[c.key]))).join(",")));
+    const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "data.csv" });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function renderDetail() { renderDetailMatrix(); renderWorklist(); }
+
+  /* ---------- wiring ---------- */
+  const RENDER = { executive: renderExecutive, organization: renderOrganization, detail: renderDetail };
+  buildSlicers("executive", renderExecutive);
+  buildSlicers("organization", () => { orgState.selectedOrg = null; renderOrganization(); });
+  buildSlicers("detail", renderDetail);
+
+  els("[data-view]").forEach((b) => b.addEventListener("click", () => {
+    els("[data-view]").forEach((x) => x.classList.toggle("active", x === b));
+    detailState.view = b.dataset.view; detailState.expanded.clear(); detailState.node = null;
+    renderDetail();
+  }));
+  els("[data-tree]").forEach((b) => b.addEventListener("click", () => {
+    // Power BI "Expand all down one level" / "Drill up": move the whole matrix one level.
+    const levels = LEVELS[detailState.view];
+    const depth = Math.max(0, ...[...detailState.expanded].map((id) => JSON.parse(id).length));
+    const target = b.dataset.tree === "expand" ? Math.min(levels.length - 1, depth + 1) : Math.max(0, depth - 1);
+    detailState.expanded.clear();
+    detailRows(false).forEach((r) => { for (let d = 1; d <= target; d++) detailState.expanded.add(JSON.stringify(levels.slice(0, d).map((l) => l.key(r)))); });
+    renderDetailMatrix();
+  }));
+  const more = el("#worklist-more");
+  el(".vh-btn", more).addEventListener("click", (e) => { e.stopPropagation(); more.classList.toggle("open"); });
+  document.addEventListener("click", () => more.classList.remove("open"));
+  el("#export-csv").addEventListener("click", () => { more.classList.remove("open"); exportCsv(); });
+  buildFieldParamSlicer(el("#wl-dims"), "dims", WL_DIMS);
+  buildFieldParamSlicer(el("#wl-measures"), "measures", WL_MEASURES);
+  renderBookmarks();
+  // Page 3 Reset is a bookmark: clear the slicers and restore the default worklist view.
+  el("#page-detail [data-reset]").addEventListener("click", () => applyBookmark(DEFAULT_PRESET));
+  els(".js-asof").forEach((n) => (n.textContent = longDate(SNAP)));
+
+  function show() {
+    const page = RENDER[location.hash.slice(1)] ? location.hash.slice(1) : "executive";
+    els(".canvas").forEach((c) => (c.hidden = c.dataset.page !== page));
+    els(".page-tabs a").forEach((a) => a.classList.toggle("active", a.dataset.page === page));
+    RENDER[page]();
+    Object.values(charts).forEach((c) => c.resize());
+  }
+  window.addEventListener("hashchange", show);
+  window.addEventListener("resize", () => Object.values(charts).forEach((c) => c.resize()));
+  show();
+})();

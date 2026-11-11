@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Software End of Support - Dashboard Mockups</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+</head>
+<body>
+  <div class="mockup-banner">
+    <strong>DESIGN MOCKUP</strong> &mdash; pending user approval before Power BI development. Figures are computed from the sample CSV for realism and are not validated measures.
+  </div>
+
+  <nav class="page-tabs" aria-label="Report pages">
+    <a href="#executive" data-page="executive">1. Executive Summary</a>
+    <a href="#organization" data-page="organization">2. Risk by Organization</a>
+    <a href="#detail" data-page="detail">3. Lifecycle Detail &amp; Remediation</a>
+  </nav>
+
+  <main>
+    <!-- Page 1 -->
+    <section class="canvas" id="page-executive" data-page="executive" hidden>
+      <header class="report-header">
+        <div>
+          <h1>Software End of Support</h1>
+          <p class="subtitle">Executive Summary</p>
+        </div>
+        <div class="asof"><span>Latest snapshot</span><strong class="js-asof"></strong></div>
+      </header>
+      <div class="slicer-bar">
+        <div class="slicer" data-slicer="org" data-label="CIO org"></div>
+        <div class="slicer" data-slicer="env" data-label="Environment"></div>
+        <div class="slicer" data-slicer="crit" data-label="Business criticality"></div>
+        <button class="reset-btn" type="button" data-reset>Reset filters</button>
+      </div>
+      <div class="kpi-row">
+        <div class="card kpi" id="kpi-total"></div>
+        <div class="card kpi" id="kpi-pct"></div>
+        <div class="card kpi" id="kpi-past"></div>
+        <div class="card kpi" id="kpi-upcoming"></div>
+      </div>
+      <div class="grid exec-row-1">
+        <div class="card visual">
+          <h2>Lifecycle status</h2>
+          <div class="chart" id="chart-donut"></div>
+        </div>
+        <div class="card visual">
+          <h2>% of installs past EOS by snapshot <span class="hint">reference lines at 3% and 5%</span></h2>
+          <div class="chart" id="chart-trend"></div>
+        </div>
+      </div>
+      <div class="grid exec-row-2">
+        <div class="card visual">
+          <h2>Top 10 products past EOS <span class="hint">installs</span></h2>
+          <div class="chart" id="chart-top10"></div>
+        </div>
+        <div class="card visual">
+          <h2>Upcoming 6 months <span class="hint">installs crossing EOS &amp; projected % past EOS if nothing is remediated</span></h2>
+          <div class="chart" id="chart-upcoming"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page 2 -->
+    <section class="canvas" id="page-organization" data-page="organization" hidden>
+      <header class="report-header">
+        <div>
+          <h1>Software End of Support</h1>
+          <p class="subtitle">Risk by Organization</p>
+        </div>
+        <div class="asof"><span>Latest snapshot</span><strong class="js-asof"></strong></div>
+      </header>
+      <div class="slicer-bar">
+        <div class="slicer" data-slicer="env" data-label="Environment"></div>
+        <div class="slicer" data-slicer="crit" data-label="Business criticality"></div>
+        <button class="reset-btn" type="button" data-reset>Reset filters</button>
+        <div class="legend-rag">
+          <span class="rag-chip rag-green">&le; 3%</span>
+          <span class="rag-chip rag-amber">3&ndash;5%</span>
+          <span class="rag-chip rag-red">&gt; 5%</span>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="card kpi" id="kpi-org-estate"></div>
+        <div class="card kpi" id="kpi-org-orgs"></div>
+        <div class="card kpi" id="kpi-org-groups"></div>
+        <div class="card kpi" id="kpi-org-days"></div>
+      </div>
+      <div class="grid org-row">
+        <div class="card visual">
+          <h2>CIO org &rarr; managed-by group <span class="hint">+/- to expand an org, select an org row to cross-filter the chart</span></h2>
+          <div class="matrix-wrap" id="org-matrix"></div>
+        </div>
+        <div class="card visual">
+          <h2>Average days non-compliant by managed-by group <span class="hint js-org-filter-hint">all CIO orgs</span></h2>
+          <div class="chart" id="chart-days"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page 3 -->
+    <section class="canvas canvas-tall" id="page-detail" data-page="detail" hidden>
+      <header class="report-header">
+        <div>
+          <h1>Software End of Support</h1>
+          <p class="subtitle">Lifecycle Detail &amp; Remediation</p>
+        </div>
+        <div class="asof"><span>Latest snapshot</span><strong class="js-asof"></strong></div>
+      </header>
+      <div class="slicer-bar">
+        <div class="field-param" role="group" aria-label="View by">
+          <span class="field-param-label">View by</span>
+          <button type="button" data-view="product" class="active">Product</button>
+          <button type="button" data-view="org">Organization</button>
+        </div>
+        <div class="slicer" data-slicer="env" data-label="Environment"></div>
+        <div class="slicer" data-slicer="crit" data-label="Business criticality"></div>
+        <div class="slicer" data-slicer="status" data-label="EOS status"></div>
+        <div class="slicer" data-slicer="group" data-label="Managed-by group" data-search="true"></div>
+        <div class="slicer" data-slicer="cat" data-label="Product category" data-search="true"></div>
+        <button class="reset-btn" type="button" data-reset>Reset</button>
+      </div>
+      <div class="card visual">
+        <h2><span class="js-matrix-title"></span> <span class="hint">+/- to expand a row, header icons to expand or collapse a level, select a row to cross-filter the worklist; group rows show MIN EOS date and MAX days</span>
+          <span class="visual-header">
+            <button type="button" class="vh-btn" data-tree="collapse" title="Drill up (collapse all one level)">&#8593;</button>
+            <button type="button" class="vh-btn" data-tree="expand" title="Expand all down one level in the hierarchy">&#8650;</button>
+          </span>
+        </h2>
+        <div class="matrix-wrap tall" id="detail-matrix"></div>
+      </div>
+      <div class="card visual">
+        <h2>Remediation worklist <span class="hint js-grain"></span>
+          <span class="visual-header">
+            <span class="vh-more" id="worklist-more">
+              <button type="button" class="vh-btn" title="More options">&#8943;</button>
+              <div class="vh-menu"><button type="button" id="export-csv">Export data</button></div>
+            </span>
+          </span>
+        </h2>
+        <div class="worklist-controls">
+          <div class="slicer" id="wl-dims" data-label="Worklist columns" title="Field parameter slicer"></div>
+          <div class="slicer" id="wl-measures" data-label="Worklist measures" title="Field parameter slicer"></div>
+          <div class="bookmark-nav" role="group" aria-label="Saved views">
+            <span class="slicer-label">Saved views (bookmarks)</span>
+            <div class="bookmark-buttons" id="wl-bookmarks"></div>
+          </div>
+        </div>
+        <div class="table-wrap" id="worklist"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/mock-data.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

@@ -451,50 +451,134 @@
     }));
   }
 
-  const WORKLIST_COLS = [
-    { key: "host", label: "Host" }, { key: "env", label: "Environment" }, { key: "crit", label: "Criticality" },
-    { key: "product", label: "Product" }, { key: "version", label: "Version" }, { key: "group", label: "Managed-by group" },
-    { key: "org", label: "CIO org" }, { key: "status", label: "EOS status" }, { key: "eff", label: "Effective EOS", fmt: iso },
-    { key: "daysPast", label: "Days past EOS", num: true }, { key: "daysNC", label: "Days non-compliant", num: true },
+  /* Worklist columns behave like Power BI field parameters: the chosen dimension
+   * columns set the grain (one row per distinct combination) and measures aggregate. */
+  const sum = (list, f) => list.reduce((s, r) => s + (f(r) ? 1 : 0), 0);
+  const maxOf = (list, k) => { const v = list.map((r) => r[k]).filter((x) => x != null); return v.length ? Math.max(...v) : null; };
+  const avgOf = (list, k) => { const v = list.map((r) => r[k]).filter((x) => x != null); return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null; };
+  const WL_DIMS = [
+    { key: "id", label: "Install ID", csv: "install_id" },
+    { key: "host", label: "Host", csv: "host_name" },
+    { key: "ciId", label: "CI ID", csv: "ci_id" },
+    { key: "ciType", label: "CI type", csv: "ci_type" },
+    { key: "env", label: "Environment", csv: "environment" },
+    { key: "crit", label: "Criticality", csv: "business_criticality" },
+    { key: "city", label: "City", csv: "city" },
+    { key: "country", label: "Country", csv: "country" },
+    { key: "product", label: "Product", csv: "normalized_product_name" },
+    { key: "version", label: "Version", csv: "normalized_version" },
+    { key: "mfr", label: "Manufacturer", csv: "normalized_manufacturer" },
+    { key: "edition", label: "Edition", csv: "edition" },
+    { key: "cat", label: "Product category", csv: "product_category" },
+    { key: "group", label: "Managed-by group", csv: "managed_by_group" },
+    { key: "groupMgr", label: "Group manager", csv: "managed_by_group_manager_name" },
+    { key: "org", label: "CIO org", csv: "cio_org_name" },
+    { key: "orgMgr", label: "CIO org manager", csv: "cio_org_manager_name" },
+    { key: "status", label: "EOS status", csv: "eos_status" },
+    { key: "eol", label: "End of life", csv: "end_of_life_date", date: true },
+    { key: "ext", label: "Extended support end", csv: "extended_support_end_date", date: true },
+    { key: "obs", label: "Obsolete date", csv: "obsolete_date", date: true },
+    { key: "eff", label: "Effective EOS", csv: "effective_eos_date", date: true },
+    { key: "basis", label: "EOS basis", csv: "effective_eos_basis" },
+    { key: "aging", label: "Aging start", csv: "aging_start_date", date: true },
   ];
-  const EXPORT_COLS = [
-    ["install_id", "id"], ["host_name", "host"], ["ci_id", "ciId"], ["ci_type", "ciType"], ["environment", "env"],
-    ["business_criticality", "crit"], ["city", "city"], ["country", "country"], ["normalized_product_name", "product"],
-    ["normalized_version", "version"], ["normalized_manufacturer", "mfr"], ["edition", "edition"], ["product_category", "cat"],
-    ["managed_by_group", "group"], ["managed_by_group_manager_name", "groupMgr"], ["cio_org_name", "org"], ["cio_org_manager_name", "orgMgr"],
-    ["eos_status", "status"], ["end_of_life_date", "eol", iso], ["extended_support_end_date", "ext", iso], ["obsolete_date", "obs", iso],
-    ["effective_eos_date", "eff", iso], ["effective_eos_basis", "basis"], ["days_past_eos", "daysPast"],
-    ["aging_start_date", "aging", iso], ["days_non_compliant", "daysNC"], ["reaching_eos_within_6_months", "within6m", (v) => (v ? "Yes" : "No")],
+  const WL_MEASURES = [
+    { key: "installs", label: "Installs", csv: "installs", agg: (l) => l.length },
+    { key: "pastCount", label: "Past EOS", csv: "installs_past_eos", agg: (l) => sum(l, (r) => r.past) },
+    { key: "pastPct", label: "% past EOS", csv: "pct_past_eos", agg: (l) => ratio(sum(l, (r) => r.past), l.length), pct: true },
+    { key: "upcoming", label: "Reaching EOS ≤ 6 mo", short: "EOS ≤ 6 mo", csv: "reaching_eos_within_6_months", agg: (l) => sum(l, (r) => r.within6m) },
+    { key: "hosts", label: "Hosts", csv: "distinct_hosts", agg: (l) => new Set(l.map((r) => r.host)).size },
+    { key: "daysPast", label: "Days past EOS (max)", short: "Days past EOS", csv: "max_days_past_eos", agg: (l) => maxOf(l, "daysPast") },
+    { key: "daysNC", label: "Days non-compliant (max)", short: "Days non-compliant", csv: "max_days_non_compliant", agg: (l) => maxOf(l, "daysNC") },
+    { key: "avgNC", label: "Days non-compliant (avg)", short: "Avg days NC", csv: "avg_days_non_compliant", agg: (l) => avgOf(l, "daysNC") },
+  ].map((m) => ({ ...m, num: true }));
+  const WL_PRESETS = {
+    "Host / install": { dims: ["host", "env", "crit", "product", "version", "group", "org", "status", "eff"], measures: ["daysPast", "daysNC"] },
+    "Host": { dims: ["host", "ciType", "env", "crit", "group", "org"], measures: ["installs", "pastCount", "pastPct", "upcoming", "daysPast", "daysNC"] },
+    "Product version": { dims: ["product", "version", "mfr", "eff", "status"], measures: ["installs", "hosts", "pastCount", "upcoming", "daysPast"] },
+    "Managed-by group": { dims: ["org", "group", "groupMgr"], measures: ["installs", "hosts", "pastCount", "pastPct", "upcoming", "avgNC", "daysNC"] },
+  };
+  const DEFAULT_PRESET = "Host / install";
+  const wl = { dims: [...WL_PRESETS[DEFAULT_PRESET].dims], measures: [...WL_PRESETS[DEFAULT_PRESET].measures] };
+  const wlColumns = () => [
+    ...WL_DIMS.filter((d) => wl.dims.includes(d.key)),
+    ...WL_MEASURES.filter((m) => wl.measures.includes(m.key)),
   ];
+  function worklistRows() {
+    const dims = WL_DIMS.filter((d) => wl.dims.includes(d.key));
+    const measures = WL_MEASURES.filter((m) => wl.measures.includes(m.key));
+    const groups = groupBy(detailRows(), (r) => dims.map((d) => r[d.key] ?? "").join("\u0001"));
+    return [...groups.values()].map((list) => {
+      const row = {};
+      dims.forEach((d) => (row[d.key] = list[0][d.key]));
+      measures.forEach((m) => (row[m.key] = m.agg(list)));
+      return row;
+    });
+  }
   function sortedWorklist() {
+    const cols = wlColumns();
+    if (!cols.some((c) => c.key === detailState.sort.key)) {
+      const fallback = cols.find((c) => c.key === "daysPast") || cols.find((c) => c.num) || cols[0];
+      detailState.sort = { key: fallback ? fallback.key : "", dir: fallback && fallback.num ? -1 : 1 };
+    }
     const { key, dir } = detailState.sort;
-    return detailRows().slice().sort((a, b) => {
+    const tie = cols.find((c) => !c.num);
+    return worklistRows().sort((a, b) => {
       const va = a[key], vb = b[key];
       if (va == null && vb == null) return 0;
       if (va == null) return 1;
       if (vb == null) return -1;
-      return (typeof va === "number" ? va - vb : String(va).localeCompare(String(vb), undefined, { numeric: true })) * dir || a.host.localeCompare(b.host);
+      const c = (typeof va === "number" ? va - vb : String(va).localeCompare(String(vb), undefined, { numeric: true })) * dir;
+      return c || (tie ? String(a[tie.key]).localeCompare(String(b[tie.key]), undefined, { numeric: true }) : 0);
     });
   }
+  const cellText = (c, v) => (v == null || v === "" ? "" : c.date ? iso(v) : c.pct ? pct(v) : c.num ? v : v);
+  function renderColumnPicker() {
+    const panel = el("#col-picker-panel");
+    const box = (c, group) => `<label><input type="checkbox" data-col-group="${group}" value="${c.key}" ${wl[group].includes(c.key) ? "checked" : ""}> ${esc(c.label)}</label>`;
+    panel.innerHTML = `
+      <div class="col-presets"><span>Grain preset</span>${Object.keys(WL_PRESETS).map((p) => `<button type="button" data-preset="${esc(p)}">${esc(p)}</button>`).join("")}</div>
+      <div class="col-groups">
+        <div><div class="col-group-title">Columns (set the grain)</div><div class="col-dims">${WL_DIMS.map((d) => box(d, "dims")).join("")}</div></div>
+        <div><div class="col-group-title">Measures (aggregated)</div>${WL_MEASURES.map((m) => box(m, "measures")).join("")}</div>
+      </div>`;
+    els("input[data-col-group]", panel).forEach((i) => i.addEventListener("change", () => {
+      const list = wl[i.dataset.colGroup];
+      const order = (i.dataset.colGroup === "dims" ? WL_DIMS : WL_MEASURES).map((c) => c.key);
+      if (i.checked) list.push(i.value); else list.splice(list.indexOf(i.value), 1);
+      list.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+      detailState.page = 0; renderWorklist();
+    }));
+    els("[data-preset]", panel).forEach((b) => b.addEventListener("click", () => {
+      const p = WL_PRESETS[b.dataset.preset];
+      wl.dims = [...p.dims]; wl.measures = [...p.measures];
+      detailState.page = 0; renderColumnPicker(); renderWorklist();
+    }));
+  }
   function renderWorklist() {
+    const cols = wlColumns();
     const list = sortedWorklist();
     const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
     detailState.page = Math.min(detailState.page, pages - 1);
     const slice = list.slice(detailState.page * PAGE_SIZE, (detailState.page + 1) * PAGE_SIZE);
     const { key, dir } = detailState.sort;
-    el("#worklist").innerHTML = `<table class="mx"><thead><tr>${WORKLIST_COLS.map((c) =>
-      `<th class="sortable" data-sort="${c.key}" style="text-align:${c.num || c.key === "eff" ? "right" : "left"}">${c.label}${c.key === key ? ` <span class="sort-ind">${dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("")}</tr></thead><tbody>
-      ${slice.map((r) => `<tr>${WORKLIST_COLS.map((c) => {
+    const dimLabels = WL_DIMS.filter((d) => wl.dims.includes(d.key)).map((d) => d.label);
+    el(".js-grain").textContent = dimLabels.length ? `grain: one row per ${dimLabels.join(" × ")}` : "grain: single total row (no columns selected)";
+    el("#worklist").innerHTML = `<table class="mx"><thead><tr>${cols.map((c) =>
+      `<th class="sortable" data-sort="${c.key}" style="text-align:${c.num || c.date ? "right" : "left"}" title="${esc(c.label)}">${esc(c.short || c.label)}${c.key === key ? ` <span class="sort-ind">${dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("")}</tr></thead><tbody>
+      ${slice.map((r) => `<tr>${cols.map((c) => {
         const v = r[c.key];
         if (c.key === "status") return `<td class="left"><span class="status-pill status-${STATUS_CLASS[v]}">${v}</span></td>`;
         if (c.key === "eff") return `<td>${v == null ? '<span class="muted">Unknown</span>' : iso(v)}</td>`;
+        if (c.date) return `<td>${v == null ? "–" : iso(v)}</td>`;
+        if (c.pct) return `<td class="rag rag-${rag(v)}">${pct(v)}</td>`;
         if (c.num) return `<td>${v == null ? "–" : n0(v)}</td>`;
-        return `<td class="left">${esc(v)}</td>`;
-      }).join("")}</tr>`).join("") || `<tr><td colspan="${WORKLIST_COLS.length}" class="left muted">No installs match the current filters.</td></tr>`}
+        return `<td class="left">${esc(v ?? "")}</td>`;
+      }).join("")}</tr>`).join("") || `<tr><td colspan="${Math.max(cols.length, 1)}" class="left muted">No installs match the current filters.</td></tr>`}
       </tbody></table>`;
     els("#worklist th[data-sort]").forEach((th) => th.addEventListener("click", () => {
       const k = th.dataset.sort;
-      detailState.sort = { key: k, dir: detailState.sort.key === k ? -detailState.sort.dir : WORKLIST_COLS.find((c) => c.key === k).num ? -1 : 1 };
+      detailState.sort = { key: k, dir: detailState.sort.key === k ? -detailState.sort.dir : cols.find((c) => c.key === k).num ? -1 : 1 };
       renderWorklist();
     }));
     el(".js-row-count").textContent = `${n0(list.length)} rows`;
@@ -511,8 +595,9 @@
   }
   function exportCsv() {
     const q = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-    const lines = [EXPORT_COLS.map((c) => c[0]).join(",")];
-    sortedWorklist().forEach((r) => lines.push(EXPORT_COLS.map(([, k, fmt]) => q(fmt ? fmt(r[k]) : r[k])).join(",")));
+    const cols = wlColumns();
+    const lines = [cols.map((c) => c.csv).join(",")];
+    sortedWorklist().forEach((r) => lines.push(cols.map((c) => q(c.pct ? (r[c.key] == null ? "" : r[c.key].toFixed(4)) : cellText(c, r[c.key]))).join(",")));
     const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `eos_remediation_worklist_${iso(SNAP)}.csv` });
     document.body.appendChild(a); a.click(); a.remove();
@@ -540,6 +625,10 @@
     renderDetailMatrix();
   }));
   el("#export-csv").addEventListener("click", exportCsv);
+  renderColumnPicker();
+  el("#col-picker-btn").addEventListener("click", (e) => { e.stopPropagation(); el("#col-picker").classList.toggle("open"); });
+  el("#col-picker-panel").addEventListener("click", (e) => e.stopPropagation());
+  document.addEventListener("click", () => el("#col-picker").classList.remove("open"));
   els(".js-asof").forEach((n) => (n.textContent = longDate(SNAP)));
 
   function show() {

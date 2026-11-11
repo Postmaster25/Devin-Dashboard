@@ -131,8 +131,12 @@
         <div class="matrix-wrap tall" id="detail-matrix"></div>
       </div>
       <div class="card visual">
-        <h2>Remediation worklist <span class="hint">host grain &middot; one row per install</span>
+        <h2>Remediation worklist <span class="hint js-grain"></span>
           <span class="matrix-tools">
+            <span class="col-picker" id="col-picker">
+              <button type="button" id="col-picker-btn">Columns &#9662;</button>
+              <div class="col-picker-panel" id="col-picker-panel"></div>
+            </span>
             <span class="filter-chip js-node-chip" hidden></span>
             <span class="row-count js-row-count"></span>
             <button type="button" class="primary" id="export-csv">Export CSV</button>

@@ -19,7 +19,11 @@ The page canvases are sized like Power BI pages: 1280 × 720 (16:9) for pages 1�
 |---|------|---------|---------|
 | 1 | **Executive Summary** | KPI cards (total installs, % past EOS with RAG, installs past EOS, installs reaching EOS within 6 months). Lifecycle-status donut (Supported / Extended / Past EOS / Unknown). % past EOS across 7 snapshots with 3% and 5% reference lines. Top-10 products past EOS. "Upcoming 6 months" combo: columns show installs crossing EOS per month, and the line shows cumulative projected % past EOS on the secondary axis. | CIO org, environment, business criticality |
 | 2 | **Risk by Organization** | RAG KPI strip. Drillable matrix CIO org → managed-by group with installs, past-EOS count, % past EOS (RAG background), change vs prior snapshot and a 7-snapshot sparkline. Bar chart ranking managed-by groups by average days non-compliant, with bar colour set by the group's RAG. Clicking an org row in the matrix cross-filters the bar chart. | Environment, business criticality |
-| 3 | **Lifecycle Detail & Remediation** | "View by" toggle (Product / Organization), standing in for a Power BI **field parameter**. Drillable matrix Product → Version → Host or CIO org → Managed-by group → Host, with version, effective EOS date, days past EOS and days non-compliant. Host-grain remediation worklist (one row per install) that you can sort, page through and **Export CSV** from. Clicking a matrix row filters the worklist. | Environment, business criticality, EOS status, managed-by group, product category |
+| 3 | **Lifecycle Detail & Remediation** | "View by" toggle (Product / Organization), standing in for a Power BI **field parameter**. Drillable matrix Product → Version → Host or CIO org → Managed-by group → Host, with version, effective EOS date, days past EOS and days non-compliant. Remediation worklist that you can sort, page through and **Export CSV** from. Clicking a matrix row filters the worklist. The **Columns** picker stands in for Power BI field parameters on the table visual:
+  - Pick dimension columns to set the grain (one row per distinct combination).
+  - Pick measures to aggregate at that grain: installs, past EOS, % past EOS (RAG), reaching EOS ≤ 6 mo, hosts, max/avg days.
+  - Presets: Host / install, Host, Product version, Managed-by group.
+  - The export follows the visible columns. | Environment, business criticality, EOS status, managed-by group, product category |
 
 ## Business rules shown in the mockups
 

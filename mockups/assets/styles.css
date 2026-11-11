@@ -121,9 +121,9 @@ table.mx tr.selectable:hover td { background: #F7F3F0; }
 .toggle { display: inline-block; width: 16px; cursor: pointer; color: var(--wf-red); font-size: 11px; user-select: none; }
 .toggle.leaf { cursor: default; }
 td.rag { font-weight: 700; }
-table.mx td.rag-green { background: var(--rag-green-bg); color: var(--rag-green); }
-table.mx td.rag-amber { background: var(--rag-amber-bg); color: var(--rag-amber); }
-table.mx td.rag-red { background: var(--rag-red-bg); color: var(--rag-red); }
+table.mx tr td.rag.rag-green { background: var(--rag-green-bg); color: var(--rag-green); }
+table.mx tr td.rag.rag-amber { background: var(--rag-amber-bg); color: var(--rag-amber); }
+table.mx tr td.rag.rag-red { background: var(--rag-red-bg); color: var(--rag-red); }
 .trend-cell { display: inline-flex; align-items: center; gap: 6px; }
 .spark { vertical-align: middle; }
 .muted { color: var(--text-muted); }
@@ -143,3 +143,17 @@ table.mx td.rag-red { background: var(--rag-red-bg); color: var(--rag-red); }
 .pager { display: flex; justify-content: flex-end; align-items: center; gap: 6px; padding-top: 8px; font-size: 12px; }
 .pager button { padding: 3px 10px; border: 1px solid var(--border); background: #fff; border-radius: 3px; cursor: pointer; }
 .pager button:disabled { opacity: .4; cursor: default; }
+
+/* Worklist column picker (field-parameter stand-in) */
+.col-picker { position: relative; }
+.col-picker-panel { display: none; position: absolute; right: 0; top: calc(100% + 4px); z-index: 30; width: 600px; background: #fff; border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 6px 18px rgba(0, 0, 0, .14); padding: 10px; font-size: 12.5px; font-weight: 400; }
+.col-picker.open .col-picker-panel { display: block; }
+.col-picker.open #col-picker-btn { border-color: var(--wf-red); color: var(--wf-red); }
+.col-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border); }
+.col-presets span { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+.col-groups { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+.col-dims { columns: 2; column-gap: 8px; }
+.col-group-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+.col-groups label { display: flex; align-items: center; gap: 8px; padding: 3px 4px; border-radius: 3px; cursor: pointer; white-space: nowrap; }
+.col-groups label:hover { background: #F7F3F0; }
+.col-groups input { accent-color: var(--wf-red); }

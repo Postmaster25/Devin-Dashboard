@@ -19,11 +19,33 @@ The page canvases are sized like Power BI pages: 1280 × 720 (16:9) for pages 1�
 |---|------|---------|---------|
 | 1 | **Executive Summary** | KPI cards (total installs, % past EOS with RAG, installs past EOS, installs reaching EOS within 6 months). Lifecycle-status donut (Supported / Extended / Past EOS / Unknown). % past EOS across 7 snapshots with 3% and 5% reference lines. Top-10 products past EOS. "Upcoming 6 months" combo: columns show installs crossing EOS per month, and the line shows cumulative projected % past EOS on the secondary axis. | CIO org, environment, business criticality |
 | 2 | **Risk by Organization** | RAG KPI strip. Drillable matrix CIO org → managed-by group with installs, past-EOS count, % past EOS (RAG background), change vs prior snapshot and a 7-snapshot sparkline. Bar chart ranking managed-by groups by average days non-compliant, with bar colour set by the group's RAG. Clicking an org row in the matrix cross-filters the bar chart. | Environment, business criticality |
-| 3 | **Lifecycle Detail & Remediation** | "View by" toggle (Product / Organization), standing in for a Power BI **field parameter**. Drillable matrix Product → Version → Host or CIO org → Managed-by group → Host, with version, effective EOS date, days past EOS and days non-compliant. Remediation worklist that you can sort, page through and **Export CSV** from. Clicking a matrix row filters the worklist. The **Columns** picker stands in for Power BI field parameters on the table visual:
-  - Pick dimension columns to set the grain (one row per distinct combination).
-  - Pick measures to aggregate at that grain: installs, past EOS, % past EOS (RAG), reaching EOS ≤ 6 mo, hosts, max/avg days.
-  - Presets: Host / install, Host, Product version, Managed-by group.
-  - The export follows the visible columns. | Environment, business criticality, EOS status, managed-by group, product category |
+| 3 | **Lifecycle Detail & Remediation** | "View by" toggle (Product / Organization), standing in for a Power BI **field parameter**. Drillable matrix Product → Version → Host or CIO org → Managed-by group → Host, with version, effective EOS date, days past EOS and days non-compliant. Remediation worklist table (sortable, scrolls like a Power BI table, with a Total row). Selecting a matrix row cross-filters it. Two **field-parameter slicers** (Worklist columns, Worklist measures) set which fields the table shows, and so its grain. **Saved views** buttons stand in for bookmarks (Host / install, Host, Product version, Managed-by group). Export is under the visual's **⋯ More options → Export data**. |
+
+## Power BI feasibility
+
+Every interaction in the mockups maps to a native Power BI feature. A few designs were changed so they don't promise something Power BI can't do.
+
+| Mockup element | Power BI implementation |
+|---|---|
+| Page tabs | Report pages / page navigator |
+| Dropdown slicers with search and Select all | `slicer` (Dropdown mode, search on). Sync slicers across pages if wanted |
+| Reset filters | Button with the **Clear all slicers** action |
+| KPI cards with RAG colour and "vs prior" text | New card visual. Callout and reference-label colours use fx rules on the % past EOS measure |
+| Donut centre label | A card layered over the donut (the donut has no native centre label) |
+| 3% / 5% lines on the trend | Y-axis constant lines (Analytics pane). Markers are one colour because line markers can't be conditionally coloured |
+| 5% limit on the Upcoming combo chart | A constant measure (`= 0.05`) plotted as a dashed line on the secondary axis |
+| Matrix +/- icons, ↑ / ⇊ header icons | Matrix row +/- icons and the visual-header **Drill up** / **Expand all down one level** |
+| Row selection cross-filtering, with other rows dimmed | Default matrix selection behaviour. Set interactions with Edit interactions |
+| RAG cell backgrounds (including subtotals and totals) | Background colour conditional formatting, rules ≤ 0.03 / ≤ 0.05 / > 0.05, applied to values and totals |
+| "vs prior" arrows and Trend sparkline | A delta measure with icon conditional formatting, plus a native matrix sparkline column. They are separate columns because a cell can't hold both |
+| Version "Multiple (n)" and MIN EOS on group rows | DAX measures (`IF(HASONEVALUE(...), VALUES(...), "Multiple (" & DISTINCTCOUNT(...) & ")")`) |
+| View by Product / Organization | Button slicer on a field parameter with a "View" grouping column (Product, Version, Host vs CIO org, Group, Host). Fallback: two matrices swapped by bookmarks |
+| Worklist columns / measures | Two field parameters on the table, one of columns and one of measures. Column order follows the parameter order. Nothing selected shows every field, as in Power BI |
+| Worklist grain subtitle | fx title or subtitle measure over the field-parameter table (verify during build) |
+| Saved views | Bookmarks that capture the two field-parameter slicer states and the sort |
+| Export data | Visual header ⋯ → Export data. Row limits apply: 30,000 rows for CSV, 150,000 for xlsx in the service |
+
+Removed because Power BI tables can't do them natively: pagination, a row-count label for a dynamic grain, a custom filter-chip, and an on-canvas Export button.
 
 ## Business rules shown in the mockups
 

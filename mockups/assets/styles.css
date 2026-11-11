@@ -82,7 +82,7 @@ main { display: flex; justify-content: center; padding: 0 16px 32px; }
 .kpi .label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
 .kpi .value { font-size: 30px; font-weight: 700; line-height: 1.15; margin-top: 2px; }
 .kpi .sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.kpi .badge { display: inline-block; margin-left: 8px; vertical-align: middle; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+.kpi .badge { display: inline-block; margin-left: 8px; vertical-align: middle; font-size: 12px; font-weight: 700; background: none !important; }
 .kpi .rag-dots { display: flex; gap: 14px; margin-top: 6px; font-size: 26px; font-weight: 700; }
 .kpi .rag-dots span small { font-size: 11px; font-weight: 600; margin-left: 3px; }
 .delta-up { color: var(--rag-red); }
@@ -115,10 +115,11 @@ table.mx tr.lvl-0 td { font-weight: 600; background: #FBF9F7; }
 table.mx tr.lvl-1 td:first-child { padding-left: 28px; }
 table.mx tr.lvl-2 td:first-child { padding-left: 52px; color: var(--text-muted); }
 table.mx tr.total td { font-weight: 700; border-top: 2px solid var(--text); border-bottom: 0; background: #fff; position: sticky; bottom: 0; }
-table.mx tr.selected td { background: #FDF0E0 !important; }
+table.mx.has-selection tbody tr:not(.selected):not(.total) td { opacity: .42; }
 table.mx tr.selectable td:first-child { cursor: pointer; }
 table.mx tr.selectable:hover td { background: #F7F3F0; }
-.toggle { display: inline-block; width: 16px; cursor: pointer; color: var(--wf-red); font-size: 11px; user-select: none; }
+.toggle { display: inline-flex; align-items: center; justify-content: center; width: 11px; height: 11px; margin-right: 6px; border: 1px solid #8A817C; border-radius: 1px; cursor: pointer; color: var(--text); font-size: 10px; line-height: 1; font-weight: 400; vertical-align: -1px; user-select: none; background: #fff; }
+.toggle.leaf { border-color: transparent; background: transparent; }
 .toggle.leaf { cursor: default; }
 td.rag { font-weight: 700; }
 table.mx tr td.rag.rag-green { background: var(--rag-green-bg); color: var(--rag-green); }
@@ -127,11 +128,11 @@ table.mx tr td.rag.rag-red { background: var(--rag-red-bg); color: var(--rag-red
 .trend-cell { display: inline-flex; align-items: center; gap: 6px; }
 .spark { vertical-align: middle; }
 .muted { color: var(--text-muted); }
-.status-pill { display: inline-block; padding: 1px 8px; border-radius: 9px; font-size: 11px; font-weight: 700; }
-.status-past { background: var(--rag-red-bg); color: var(--rag-red); }
-.status-extended { background: var(--rag-amber-bg); color: var(--rag-amber); }
-.status-supported { background: var(--rag-green-bg); color: var(--rag-green); }
-.status-unknown { background: #ECEAE8; color: #5E5857; }
+table.mx td.status-cell { font-weight: 700; text-align: left; }
+table.mx tr td.status-past { background: var(--rag-red-bg); color: var(--rag-red); }
+table.mx tr td.status-extended { background: var(--rag-amber-bg); color: var(--rag-amber); }
+table.mx tr td.status-supported { background: var(--rag-green-bg); color: var(--rag-green); }
+table.mx tr td.status-unknown { background: #ECEAE8; color: #5E5857; }
 
 .table-wrap { overflow: auto; border-top: 2px solid var(--text); }
 .table-wrap table.mx, #org-matrix table.mx { font-size: 12px; }
@@ -144,16 +145,24 @@ table.mx tr td.rag.rag-red { background: var(--rag-red-bg); color: var(--rag-red
 .pager button { padding: 3px 10px; border: 1px solid var(--border); background: #fff; border-radius: 3px; cursor: pointer; }
 .pager button:disabled { opacity: .4; cursor: default; }
 
-/* Worklist column picker (field-parameter stand-in) */
-.col-picker { position: relative; }
-.col-picker-panel { display: none; position: absolute; right: 0; top: calc(100% + 4px); z-index: 30; width: 600px; background: #fff; border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 6px 18px rgba(0, 0, 0, .14); padding: 10px; font-size: 12.5px; font-weight: 400; }
-.col-picker.open .col-picker-panel { display: block; }
-.col-picker.open #col-picker-btn { border-color: var(--wf-red); color: var(--wf-red); }
-.col-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border); }
-.col-presets span { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
-.col-groups { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
-.col-dims { columns: 2; column-gap: 8px; }
-.col-group-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
-.col-groups label { display: flex; align-items: center; gap: 8px; padding: 3px 4px; border-radius: 3px; cursor: pointer; white-space: nowrap; }
-.col-groups label:hover { background: #F7F3F0; }
-.col-groups input { accent-color: var(--wf-red); }
+
+/* Power BI-style visual header (shown on hover, like the native header icons) */
+.visual-header { margin-left: auto; display: flex; gap: 2px; align-items: center; opacity: 0; transition: opacity .12s; }
+.visual:hover .visual-header, .visual:focus-within .visual-header { opacity: 1; }
+.vh-btn { width: 24px; height: 22px; padding: 0; border: 0; background: transparent; color: var(--text); font-size: 14px; border-radius: 2px; cursor: pointer; }
+.vh-btn:hover { background: #EDEBE9; }
+.vh-more { position: relative; }
+.vh-menu { display: none; position: absolute; right: 0; top: 100%; z-index: 30; min-width: 160px; background: #fff; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0, 0, 0, .16); padding: 4px 0; font-weight: 400; }
+.vh-more.open .vh-menu { display: block; }
+.vh-menu button { display: block; width: 100%; text-align: left; padding: 6px 14px; border: 0; background: #fff; font-size: 13px; color: var(--text); cursor: pointer; }
+.vh-menu button:hover { background: #F3F2F1; }
+
+/* Worklist field-parameter slicers + bookmark buttons */
+.worklist-controls { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.worklist-controls .slicer { width: 240px; }
+.bookmark-buttons { display: flex; gap: 6px; }
+.bookmark-buttons button { padding: 6px 12px; border: 1px solid var(--border); background: #fff; border-radius: 4px; color: var(--text); cursor: pointer; font-size: 12px; }
+.bookmark-buttons button:hover { border-color: var(--wf-red); color: var(--wf-red); }
+.bookmark-buttons button.active { background: var(--wf-red); border-color: var(--wf-red); color: #fff; font-weight: 600; }
+#worklist { max-height: 520px; }
+#worklist .empty { padding: 40px; text-align: center; color: var(--text-muted); }

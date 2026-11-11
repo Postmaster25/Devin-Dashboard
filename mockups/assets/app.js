@@ -115,7 +115,7 @@
   function buildSlicers(page, onChange) {
     const root = el(`#page-${page}`);
     const filters = (pageFilters[page] = {});
-    els(".slicer", root).forEach((s) => {
+    els(".slicer[data-slicer]", root).forEach((s) => {
       const key = s.dataset.slicer;
       filters[key] = new Set();
       const opts = OPTIONS[key];
@@ -160,7 +160,7 @@
     const reset = el("[data-reset]", root);
     reset.addEventListener("click", () => {
       Object.values(filters).forEach((set) => set.clear());
-      els(".slicer", root).forEach((s) => s._sync());
+      els(".slicer[data-slicer]", root).forEach((s) => s._sync());
       onChange();
     });
     return filters;
@@ -219,9 +219,9 @@
       yAxis: { ...axisCommon, type: "value", min: 0, max: (v) => Math.max(0.06, Math.ceil((v.max + 0.005) * 50) / 50), interval: 0.02, axisLabel: { ...axisCommon.axisLabel, formatter: (v) => pct(v, 0) } },
       series: [{
         type: "line", data: trend, smooth: false, symbol: "circle", symbolSize: 7, lineStyle: { color: C.red, width: 3 },
-        itemStyle: { color: (d) => ragColor(d.value), borderColor: "#fff", borderWidth: 1.5 },
+        itemStyle: { color: C.red, borderColor: "#fff", borderWidth: 1.5 },
         label: { show: true, position: "top", formatter: (d) => pct(d.value), color: C.text, fontFamily: FONT, fontSize: 11 },
-        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: "rgba(215,30,40,.18)" }, { offset: 1, color: "rgba(215,30,40,0)" }]) },
+        areaStyle: { color: "rgba(215,30,40,.08)" },
         markLine: { symbol: "none", silent: true, data: [
           { yAxis: GREEN_MAX, lineStyle: { color: C.green, type: "dashed", width: 1.5 }, label: { formatter: "3% target", color: C.green, fontFamily: FONT, fontSize: 11 } },
           { yAxis: AMBER_MAX, lineStyle: { color: C.redDark, type: "dashed", width: 1.5 }, label: { formatter: "5% limit", color: C.redDark, fontFamily: FONT, fontSize: 11 } },
@@ -266,8 +266,8 @@
           label: { show: true, position: "insideBottom", distance: 4, color: C.text, fontFamily: FONT, fontSize: 11, fontWeight: 600 } },
         { name: "Cumulative projected % past EOS", type: "line", yAxisIndex: 1, data: cumulative, symbol: "circle", symbolSize: 7,
           lineStyle: { color: C.red, width: 3 }, itemStyle: { color: C.red },
-          label: { show: true, position: "top", formatter: (d) => pct(d.value), color: C.redDark, fontFamily: FONT, fontSize: 11, fontWeight: 700 },
-          markLine: { symbol: "none", silent: true, data: [{ yAxis: AMBER_MAX, lineStyle: { color: C.redDark, type: "dashed" }, label: { formatter: "5% limit", position: "insideStartTop", color: C.redDark, fontFamily: FONT, fontSize: 10 } }] } },
+          label: { show: true, position: "top", formatter: (d) => pct(d.value), color: C.redDark, fontFamily: FONT, fontSize: 11, fontWeight: 700 } },
+        { name: "5% limit", type: "line", yAxisIndex: 1, data: cols.map(() => AMBER_MAX), symbol: "none", lineStyle: { color: C.redDark, type: "dashed", width: 1.5 }, itemStyle: { color: C.redDark }, tooltip: { show: false } },
       ],
     }, true);
   }
@@ -289,12 +289,12 @@
     const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
     const pts = vals.map((v, i) => `${(i / (vals.length - 1)) * w},${h - 2 - ((v - lo) / span) * (h - 4)}`).join(" ");
     const last = pts.split(" ").pop().split(",");
-    return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="${C.muted}" stroke-width="1.5"/><circle cx="${last[0]}" cy="${last[1]}" r="2.5" fill="${ragColor(values[values.length - 1])}"/></svg>`;
+    return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="${C.muted}" stroke-width="1.5"/><circle cx="${last[0]}" cy="${last[1]}" r="2.5" fill="${C.red}"/></svg>`;
   }
   function trendCell(series) {
     const vals = D.snapshots.map((s) => { const c = series.get(s); return ratio(c.past, c.n); });
     const d = vals[vals.length - 1] != null && vals[vals.length - 2] != null ? vals[vals.length - 1] - vals[vals.length - 2] : null;
-    return `<span class="trend-cell">${deltaPP(d)}${sparkline(vals)}</span>`;
+    return `<td>${deltaPP(d)}</td><td>${sparkline(vals)}</td>`;
   }
   function renderOrganization() {
     const f = pageFilters.organization;
@@ -333,14 +333,14 @@
       const p = ratio(x.past, x.n);
       return `<tr class="lvl-${lvl} ${cls}" ${key != null ? `data-org="${key}"` : ""}>
         <td>${label}</td><td class="left muted">${esc(mgr)}</td><td>${n0(x.n)}</td><td>${n0(x.past)}</td>
-        <td class="rag rag-${rag(p)}">${pct(p)}</td><td>${series ? trendCell(series) : ""}</td>
+        <td class="rag rag-${rag(p)}">${pct(p)}</td>${series ? trendCell(series) : "<td></td><td></td>"}
         <td>${x.avgNC == null ? "–" : n0(Math.round(x.avgNC))}</td></tr>`;
     };
-    let html = `<table class="mx"><thead><tr><th>CIO org / Managed-by group</th><th style="text-align:left">Manager</th><th>Installs</th><th>Past EOS</th>
-      <th>% past EOS</th><th>vs prior &middot; trend</th><th title="Average days non-compliant">Avg days NC</th></tr></thead><tbody>`;
+    let html = `<table class="mx ${orgState.selectedOrg != null ? "has-selection" : ""}"><thead><tr><th>CIO org / Managed-by group</th><th style="text-align:left">Manager</th><th>Installs</th><th>Past EOS</th>
+      <th>% past EOS</th><th>vs prior</th><th>Trend</th><th title="Average days non-compliant">Avg days NC</th></tr></thead><tbody>`;
     orgs.forEach((o) => {
       const open = orgState.expanded.has(o.idx);
-      const label = `<span class="toggle" data-toggle="${o.idx}">${open ? "▾" : "▸"}</span>${esc(o.name)}`;
+      const label = `<span class="toggle" data-toggle="${o.idx}">${open ? "−" : "+"}</span>${esc(o.name)}`;
       html += tr(0, `selectable ${orgState.selectedOrg === o.idx ? "selected" : ""}`, label, o.mgr, o, orgSeries.get(o.idx), o.idx);
       if (open) o.groups.filter((g) => g.n).forEach((g) => (html += tr(1, "", esc(g.name), g.mgr, g, groupSeries.get(g.idx))));
     });
@@ -374,8 +374,7 @@
   }
 
   /* ---------- page 3: lifecycle detail & remediation ---------- */
-  const detailState = { view: "product", expanded: new Set(), node: null, sort: { key: "daysPast", dir: -1 }, page: 0 };
-  const PAGE_SIZE = 18;
+  const detailState = { view: "product", expanded: new Set(), node: null, sort: { key: "daysPast", dir: -1 } };
   const LEVELS = {
     product: [
       { key: (r) => r.product, label: (r) => `${esc(r.product)} <span class="muted">· ${esc(r.mfr)}</span>`, name: "Product" },
@@ -414,12 +413,12 @@
       const id = JSON.stringify(path);
       const open = detailState.expanded.has(id);
       return `<tr class="lvl-${lvl} selectable ${isSel(path) ? "selected" : ""}" data-path='${esc(id)}'>
-        <td><span class="toggle ${leaf ? "leaf" : ""}" ${leaf ? "" : `data-expand='${esc(id)}'`}>${leaf ? "" : open ? "▾" : "▸"}</span>${label}</td>
+        <td><span class="toggle ${leaf ? "leaf" : ""}" ${leaf ? "" : `data-expand='${esc(id)}'`}>${leaf ? "" : open ? "−" : "+"}</span>${label}</td>
         <td>${n0(s.n)}</td><td>${n0(s.past)}</td><td class="rag rag-${rag(s.p)}">${pct(s.p)}</td>
         <td class="left">${esc(s.version)}</td><td>${s.eos == null ? '<span class="muted">Unknown</span>' : iso(s.eos)}</td>
         <td>${s.daysPast == null ? "–" : n0(s.daysPast)}</td><td>${s.daysNC == null ? "–" : n0(s.daysNC)}</td></tr>`;
     };
-    let html = `<table class="mx"><thead><tr><th>${levels.map((l) => l.name).join(" / ")}</th><th>Installs</th><th>Past EOS</th><th>% past EOS</th>
+    let html = `<table class="mx ${detailState.node ? "has-selection" : ""}"><thead><tr><th>${levels.map((l) => l.name).join(" / ")}</th><th>Installs</th><th>Past EOS</th><th>% past EOS</th>
       <th style="text-align:left">Version</th><th>Effective EOS date</th><th>Days past EOS</th><th>Days non-compliant</th></tr></thead><tbody>`;
     const walk = (list, depth, path) => {
       sortNodes(groupBy(list, levels[depth].key)).forEach(({ k, list: sub, s }) => {
@@ -446,7 +445,6 @@
     els("tr[data-path]", wrap).forEach((tr) => tr.addEventListener("click", () => {
       const path = JSON.parse(tr.dataset.path);
       detailState.node = isSel(path) ? null : path;
-      detailState.page = 0;
       renderDetailMatrix(); renderWorklist();
     }));
   }
@@ -499,14 +497,17 @@
     "Managed-by group": { dims: ["org", "group", "groupMgr"], measures: ["installs", "hosts", "pastCount", "pastPct", "upcoming", "avgNC", "daysNC"] },
   };
   const DEFAULT_PRESET = "Host / install";
-  const wl = { dims: [...WL_PRESETS[DEFAULT_PRESET].dims], measures: [...WL_PRESETS[DEFAULT_PRESET].measures] };
+  const DEFAULT_SORT = { key: "daysPast", dir: -1 };
+  const wl = { dims: [...WL_PRESETS[DEFAULT_PRESET].dims], measures: [...WL_PRESETS[DEFAULT_PRESET].measures], bookmark: DEFAULT_PRESET };
+  // As in Power BI, a field-parameter slicer with nothing selected shows every field.
+  const activeKeys = (group) => (wl[group].length ? wl[group] : (group === "dims" ? WL_DIMS : WL_MEASURES).map((c) => c.key));
   const wlColumns = () => [
-    ...WL_DIMS.filter((d) => wl.dims.includes(d.key)),
-    ...WL_MEASURES.filter((m) => wl.measures.includes(m.key)),
+    ...WL_DIMS.filter((d) => activeKeys("dims").includes(d.key)),
+    ...WL_MEASURES.filter((m) => activeKeys("measures").includes(m.key)),
   ];
   function worklistRows() {
-    const dims = WL_DIMS.filter((d) => wl.dims.includes(d.key));
-    const measures = WL_MEASURES.filter((m) => wl.measures.includes(m.key));
+    const dims = WL_DIMS.filter((d) => activeKeys("dims").includes(d.key));
+    const measures = WL_MEASURES.filter((m) => activeKeys("measures").includes(m.key));
     const groups = groupBy(detailRows(), (r) => dims.map((d) => r[d.key] ?? "").join("\u0001"));
     return [...groups.values()].map((list) => {
       const row = {};
@@ -518,7 +519,7 @@
   function sortedWorklist() {
     const cols = wlColumns();
     if (!cols.some((c) => c.key === detailState.sort.key)) {
-      const fallback = cols.find((c) => c.key === "daysPast") || cols.find((c) => c.num) || cols[0];
+      const fallback = cols.find((c) => c.num) || cols[0];
       detailState.sort = { key: fallback ? fallback.key : "", dir: fallback && fallback.num ? -1 : 1 };
     }
     const { key, dir } = detailState.sort;
@@ -533,73 +534,102 @@
     });
   }
   const cellText = (c, v) => (v == null || v === "" ? "" : c.date ? iso(v) : c.pct ? pct(v) : c.num ? v : v);
-  function renderColumnPicker() {
-    const panel = el("#col-picker-panel");
-    const box = (c, group) => `<label><input type="checkbox" data-col-group="${group}" value="${c.key}" ${wl[group].includes(c.key) ? "checked" : ""}> ${esc(c.label)}</label>`;
-    panel.innerHTML = `
-      <div class="col-presets"><span>Grain preset</span>${Object.keys(WL_PRESETS).map((p) => `<button type="button" data-preset="${esc(p)}">${esc(p)}</button>`).join("")}</div>
-      <div class="col-groups">
-        <div><div class="col-group-title">Columns (set the grain)</div><div class="col-dims">${WL_DIMS.map((d) => box(d, "dims")).join("")}</div></div>
-        <div><div class="col-group-title">Measures (aggregated)</div>${WL_MEASURES.map((m) => box(m, "measures")).join("")}</div>
+
+  function buildFieldParamSlicer(node, group, items) {
+    node.innerHTML = `
+      <span class="slicer-label">${esc(node.dataset.label)}</span>
+      <button type="button" class="slicer-btn"><span class="value"></span><span class="caret">&#9660;</span></button>
+      <div class="slicer-panel">
+        <input type="search" placeholder="Search">
+        <label class="select-all"><input type="checkbox" data-all> Select all</label>
+        <div class="slicer-options">${items.map((c) => `<label><input type="checkbox" value="${c.key}"> ${esc(c.label)}</label>`).join("")}</div>
       </div>`;
-    els("input[data-col-group]", panel).forEach((i) => i.addEventListener("change", () => {
-      const list = wl[i.dataset.colGroup];
-      const order = (i.dataset.colGroup === "dims" ? WL_DIMS : WL_MEASURES).map((c) => c.key);
-      if (i.checked) list.push(i.value); else list.splice(list.indexOf(i.value), 1);
-      list.sort((a, b) => order.indexOf(a) - order.indexOf(b));
-      detailState.page = 0; renderWorklist();
-    }));
-    els("[data-preset]", panel).forEach((b) => b.addEventListener("click", () => {
-      const p = WL_PRESETS[b.dataset.preset];
-      wl.dims = [...p.dims]; wl.measures = [...p.measures];
-      detailState.page = 0; renderColumnPicker(); renderWorklist();
+    const order = items.map((c) => c.key);
+    node._sync = () => {
+      const sel = wl[group];
+      el(".value", node).textContent = !sel.length || sel.length === order.length ? "All" : sel.length === 1 ? items.find((c) => c.key === sel[0]).label : `Multiple selections (${sel.length})`;
+      els(".slicer-options input", node).forEach((i) => (i.checked = sel.includes(i.value)));
+      el("[data-all]", node).checked = sel.length === order.length;
+    };
+    el(".slicer-btn", node).addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = !node.classList.contains("open");
+      els(".slicer.open").forEach((o) => o.classList.remove("open"));
+      node.classList.toggle("open", open);
+    });
+    el(".slicer-panel", node).addEventListener("click", (e) => e.stopPropagation());
+    el(".slicer-panel", node).addEventListener("change", (e) => {
+      if (e.target.dataset.all !== undefined) wl[group] = e.target.checked ? [...order] : [];
+      else if (e.target.checked) wl[group].push(e.target.value);
+      else wl[group].splice(wl[group].indexOf(e.target.value), 1);
+      wl[group].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+      wl.bookmark = null;
+      node._sync(); renderBookmarks(); renderWorklist();
+    });
+    const search = el("input[type=search]", node);
+    search.addEventListener("input", () => {
+      const q = search.value.toLowerCase();
+      els(".slicer-options label", node).forEach((l) => (l.style.display = l.textContent.toLowerCase().includes(q) ? "" : "none"));
+    });
+    node._sync();
+  }
+  function renderBookmarks() {
+    const box = el("#wl-bookmarks");
+    box.innerHTML = Object.keys(WL_PRESETS).map((p) => `<button type="button" data-bookmark="${esc(p)}" class="${wl.bookmark === p ? "active" : ""}">${esc(p)}</button>`).join("");
+    els("[data-bookmark]", box).forEach((b) => b.addEventListener("click", () => {
+      const p = WL_PRESETS[b.dataset.bookmark];
+      wl.dims = [...p.dims]; wl.measures = [...p.measures]; wl.bookmark = b.dataset.bookmark;
+      detailState.sort = { ...DEFAULT_SORT };
+      el("#wl-dims")._sync(); el("#wl-measures")._sync(); renderBookmarks(); renderWorklist();
     }));
   }
+
+  const WL_CHUNK = 80;
+  const wlCell = (c, v) => {
+    if (c.key === "status") return `<td class="status-cell status-${STATUS_CLASS[v]}">${v}</td>`;
+    if (c.key === "eff") return `<td>${v == null ? '<span class="muted">Unknown</span>' : iso(v)}</td>`;
+    if (c.date) return `<td>${v == null ? "" : iso(v)}</td>`;
+    if (c.pct) return `<td class="rag rag-${rag(v)}">${pct(v)}</td>`;
+    if (c.num) return `<td>${v == null ? "" : n0(v)}</td>`;
+    return `<td class="left">${esc(v ?? "")}</td>`;
+  };
   function renderWorklist() {
     const cols = wlColumns();
     const list = sortedWorklist();
-    const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
-    detailState.page = Math.min(detailState.page, pages - 1);
-    const slice = list.slice(detailState.page * PAGE_SIZE, (detailState.page + 1) * PAGE_SIZE);
     const { key, dir } = detailState.sort;
-    const dimLabels = WL_DIMS.filter((d) => wl.dims.includes(d.key)).map((d) => d.label);
-    el(".js-grain").textContent = dimLabels.length ? `grain: one row per ${dimLabels.join(" × ")}` : "grain: single total row (no columns selected)";
-    el("#worklist").innerHTML = `<table class="mx"><thead><tr>${cols.map((c) =>
-      `<th class="sortable" data-sort="${c.key}" style="text-align:${c.num || c.date ? "right" : "left"}" title="${esc(c.label)}">${esc(c.short || c.label)}${c.key === key ? ` <span class="sort-ind">${dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("")}</tr></thead><tbody>
-      ${slice.map((r) => `<tr>${cols.map((c) => {
-        const v = r[c.key];
-        if (c.key === "status") return `<td class="left"><span class="status-pill status-${STATUS_CLASS[v]}">${v}</span></td>`;
-        if (c.key === "eff") return `<td>${v == null ? '<span class="muted">Unknown</span>' : iso(v)}</td>`;
-        if (c.date) return `<td>${v == null ? "–" : iso(v)}</td>`;
-        if (c.pct) return `<td class="rag rag-${rag(v)}">${pct(v)}</td>`;
-        if (c.num) return `<td>${v == null ? "–" : n0(v)}</td>`;
-        return `<td class="left">${esc(v ?? "")}</td>`;
-      }).join("")}</tr>`).join("") || `<tr><td colspan="${Math.max(cols.length, 1)}" class="left muted">No installs match the current filters.</td></tr>`}
-      </tbody></table>`;
-    els("#worklist th[data-sort]").forEach((th) => th.addEventListener("click", () => {
+    const dimLabels = WL_DIMS.filter((d) => activeKeys("dims").includes(d.key)).map((d) => d.label);
+    el(".js-grain").textContent = `one row per ${dimLabels.join(" × ")}`;
+    const all = detailRows();
+    const totals = Object.fromEntries(WL_MEASURES.map((m) => [m.key, m.agg(all)]));
+    const dimCount = cols.filter((c) => !c.num).length;
+    const totalRow = `<tr class="total">${cols.map((c, i) => (c.num ? wlCell(c, totals[c.key]) : i === 0 ? '<td class="left">Total</td>' : "<td></td>")).join("")}</tr>`;
+    const wrap = el("#worklist");
+    wrap.innerHTML = `<table class="mx"><thead><tr>${cols.map((c) =>
+      `<th class="sortable" data-sort="${c.key}" style="text-align:${c.num || c.date ? "right" : "left"}" title="${esc(c.label)}">${esc(c.short || c.label)}${c.key === key ? ` <span class="sort-ind">${dir > 0 ? "▲" : "▼"}</span>` : ""}</th>`).join("")}</tr></thead>
+      <tbody></tbody><tfoot>${dimCount || list.length ? totalRow : ""}</tfoot></table>`;
+    const body = el("tbody", wrap);
+    let shown = 0;
+    const more = () => {
+      body.insertAdjacentHTML("beforeend", list.slice(shown, shown + WL_CHUNK).map((r) => `<tr>${cols.map((c) => wlCell(c, r[c.key])).join("")}</tr>`).join(""));
+      shown += WL_CHUNK;
+    };
+    if (list.length) more();
+    else body.innerHTML = `<tr><td colspan="${cols.length}" class="empty">No data for the current filters</td></tr>`;
+    wrap.scrollTop = 0;
+    wrap.onscroll = () => { if (shown < list.length && wrap.scrollTop + wrap.clientHeight > wrap.scrollHeight - 200) more(); };
+    els("th[data-sort]", wrap).forEach((th) => th.addEventListener("click", () => {
       const k = th.dataset.sort;
       detailState.sort = { key: k, dir: detailState.sort.key === k ? -detailState.sort.dir : cols.find((c) => c.key === k).num ? -1 : 1 };
       renderWorklist();
     }));
-    el(".js-row-count").textContent = `${n0(list.length)} rows`;
-    const chip = el(".js-node-chip");
-    chip.hidden = !detailState.node;
-    if (detailState.node) {
-      const levels = LEVELS[detailState.view];
-      chip.innerHTML = `${detailState.node.map((k, i) => `${levels[i].name}: <b>${esc(k)}</b>`).join(" › ")}<button type="button" title="Clear">✕</button>`;
-      el("button", chip).onclick = () => { detailState.node = null; renderDetailMatrix(); renderWorklist(); };
-    }
-    el("#worklist-pager").innerHTML = `<button type="button" data-pg="-1" ${detailState.page === 0 ? "disabled" : ""}>‹ Prev</button>
-      <span>Page ${detailState.page + 1} of ${pages}</span><button type="button" data-pg="1" ${detailState.page >= pages - 1 ? "disabled" : ""}>Next ›</button>`;
-    els("#worklist-pager [data-pg]").forEach((b) => b.addEventListener("click", () => { detailState.page += +b.dataset.pg; renderWorklist(); }));
   }
   function exportCsv() {
     const q = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
     const cols = wlColumns();
-    const lines = [cols.map((c) => c.csv).join(",")];
+    const lines = [cols.map((c) => q(c.label)).join(",")];
     sortedWorklist().forEach((r) => lines.push(cols.map((c) => q(c.pct ? (r[c.key] == null ? "" : r[c.key].toFixed(4)) : cellText(c, r[c.key]))).join(",")));
     const blob = new Blob([lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
-    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `eos_remediation_worklist_${iso(SNAP)}.csv` });
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "data.csv" });
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
@@ -609,26 +639,29 @@
   const RENDER = { executive: renderExecutive, organization: renderOrganization, detail: renderDetail };
   buildSlicers("executive", renderExecutive);
   buildSlicers("organization", () => { orgState.selectedOrg = null; renderOrganization(); });
-  buildSlicers("detail", () => { detailState.page = 0; renderDetail(); });
+  buildSlicers("detail", renderDetail);
 
   els("[data-view]").forEach((b) => b.addEventListener("click", () => {
     els("[data-view]").forEach((x) => x.classList.toggle("active", x === b));
-    detailState.view = b.dataset.view; detailState.expanded.clear(); detailState.node = null; detailState.page = 0;
+    detailState.view = b.dataset.view; detailState.expanded.clear(); detailState.node = null;
     renderDetail();
   }));
   els("[data-tree]").forEach((b) => b.addEventListener("click", () => {
+    // Power BI "Expand all down one level" / "Drill up": move the whole matrix one level.
+    const levels = LEVELS[detailState.view];
+    const depth = Math.max(0, ...[...detailState.expanded].map((id) => JSON.parse(id).length));
+    const target = b.dataset.tree === "expand" ? Math.min(levels.length - 1, depth + 1) : Math.max(0, depth - 1);
     detailState.expanded.clear();
-    if (b.dataset.tree === "expand") {
-      const levels = LEVELS[detailState.view];
-      detailRows(false).forEach((r) => { detailState.expanded.add(JSON.stringify([levels[0].key(r)])); detailState.expanded.add(JSON.stringify([levels[0].key(r), levels[1].key(r)])); });
-    }
+    detailRows(false).forEach((r) => { for (let d = 1; d <= target; d++) detailState.expanded.add(JSON.stringify(levels.slice(0, d).map((l) => l.key(r)))); });
     renderDetailMatrix();
   }));
-  el("#export-csv").addEventListener("click", exportCsv);
-  renderColumnPicker();
-  el("#col-picker-btn").addEventListener("click", (e) => { e.stopPropagation(); el("#col-picker").classList.toggle("open"); });
-  el("#col-picker-panel").addEventListener("click", (e) => e.stopPropagation());
-  document.addEventListener("click", () => el("#col-picker").classList.remove("open"));
+  const more = el("#worklist-more");
+  el(".vh-btn", more).addEventListener("click", (e) => { e.stopPropagation(); more.classList.toggle("open"); });
+  document.addEventListener("click", () => more.classList.remove("open"));
+  el("#export-csv").addEventListener("click", () => { more.classList.remove("open"); exportCsv(); });
+  buildFieldParamSlicer(el("#wl-dims"), "dims", WL_DIMS);
+  buildFieldParamSlicer(el("#wl-measures"), "measures", WL_MEASURES);
+  renderBookmarks();
   els(".js-asof").forEach((n) => (n.textContent = longDate(SNAP)));
 
   function show() {

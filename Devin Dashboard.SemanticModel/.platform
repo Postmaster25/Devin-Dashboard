@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Devin Dashboard"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "489efc39-4e76-4915-b11a-3b60fd457287"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Devin Dashboard"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "e5a0183d-d9ab-4fb9-976c-447a78cb6a4e"
+  }
+}

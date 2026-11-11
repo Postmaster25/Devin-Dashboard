@@ -29,7 +29,7 @@ Every interaction in the mockups maps to a native Power BI feature. A few design
 |---|---|
 | Page tabs | Report pages / page navigator |
 | Dropdown slicers with search and Select all | `slicer` (Dropdown mode, search on). Sync slicers across pages if wanted |
-| Reset filters | Button with the **Clear all slicers** action |
+| Reset filters | Button with the **Clear all slicers** action. On page 3 it is a reset bookmark instead, so the worklist field parameters return to the Host / install view rather than showing every field |
 | KPI cards with RAG colour and "vs prior" text | New card visual. Callout and reference-label colours use fx rules on the % past EOS measure |
 | Donut centre label | A card layered over the donut (the donut has no native centre label) |
 | 3% / 5% lines on the trend | Y-axis constant lines (Analytics pane). Markers are one colour because line markers can't be conditionally coloured |

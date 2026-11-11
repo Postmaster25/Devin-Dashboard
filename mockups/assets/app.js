@@ -576,12 +576,13 @@
   function renderBookmarks() {
     const box = el("#wl-bookmarks");
     box.innerHTML = Object.keys(WL_PRESETS).map((p) => `<button type="button" data-bookmark="${esc(p)}" class="${wl.bookmark === p ? "active" : ""}">${esc(p)}</button>`).join("");
-    els("[data-bookmark]", box).forEach((b) => b.addEventListener("click", () => {
-      const p = WL_PRESETS[b.dataset.bookmark];
-      wl.dims = [...p.dims]; wl.measures = [...p.measures]; wl.bookmark = b.dataset.bookmark;
-      detailState.sort = { ...DEFAULT_SORT };
-      el("#wl-dims")._sync(); el("#wl-measures")._sync(); renderBookmarks(); renderWorklist();
-    }));
+    els("[data-bookmark]", box).forEach((b) => b.addEventListener("click", () => applyBookmark(b.dataset.bookmark)));
+  }
+  function applyBookmark(name) {
+    const p = WL_PRESETS[name];
+    wl.dims = [...p.dims]; wl.measures = [...p.measures]; wl.bookmark = name;
+    detailState.sort = { ...DEFAULT_SORT };
+    el("#wl-dims")._sync(); el("#wl-measures")._sync(); renderBookmarks(); renderWorklist();
   }
 
   const WL_CHUNK = 80;
@@ -620,7 +621,8 @@
     els("th[data-sort]", wrap).forEach((th) => th.addEventListener("click", () => {
       const k = th.dataset.sort;
       detailState.sort = { key: k, dir: detailState.sort.key === k ? -detailState.sort.dir : cols.find((c) => c.key === k).num ? -1 : 1 };
-      renderWorklist();
+      wl.bookmark = null;
+      renderBookmarks(); renderWorklist();
     }));
   }
   function exportCsv() {
@@ -662,6 +664,8 @@
   buildFieldParamSlicer(el("#wl-dims"), "dims", WL_DIMS);
   buildFieldParamSlicer(el("#wl-measures"), "measures", WL_MEASURES);
   renderBookmarks();
+  // Page 3 Reset is a bookmark: clear the slicers and restore the default worklist view.
+  el("#page-detail [data-reset]").addEventListener("click", () => applyBookmark(DEFAULT_PRESET));
   els(".js-asof").forEach((n) => (n.textContent = longDate(SNAP)));
 
   function show() {

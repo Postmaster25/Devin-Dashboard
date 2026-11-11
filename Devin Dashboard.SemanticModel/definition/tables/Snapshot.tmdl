@@ -1,0 +1,52 @@
+/// One row per monthly snapshot date. Current-value measures evaluate at the latest snapshot in context.
+table Snapshot
+	lineageTag: be22ce5d-ebfd-4db7-90f1-b275edddba03
+
+	/// Snapshot date.
+	column 'Snapshot Date'
+		dataType: dateTime
+		isKey
+		formatString: yyyy-mm-dd
+		lineageTag: 96c0e47b-1e48-423e-b80e-9d3722dbb37b
+		summarizeBy: none
+		sourceColumn: snapshot_date
+
+	column 'Snapshot Number'
+		dataType: int64
+		isHidden
+		lineageTag: 480d60be-4e0a-481f-b95f-468a42af1b1d
+		summarizeBy: none
+		sourceColumn: snapshot_number
+
+	/// Snapshot date label, sorted chronologically.
+	column Snapshot
+		dataType: string
+		lineageTag: fd00ceb0-c879-473e-9fe4-a8ec5d3733a1
+		summarizeBy: none
+		sourceColumn: snapshot_label
+		sortByColumn: 'Snapshot Number'
+
+	/// Yes for the most recent snapshot.
+	column 'Is Latest Snapshot'
+		dataType: string
+		lineageTag: f6c20a7a-0d52-4c6b-9c45-3f811df80bc7
+		summarizeBy: none
+		sourceColumn: is_latest_snapshot
+
+	partition Snapshot = m
+		mode: import
+		source =
+				let
+				    Bytes = if Text.StartsWith(SourceCsvPath, "http") then Web.Contents(SourceCsvPath) else File.Contents(SourceCsvPath),
+				    Csv = Csv.Document(Bytes, [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]),
+				    Dates = Table.Distinct(Table.SelectColumns(Promoted, {"snapshot_date"})),
+				    Typed = Table.TransformColumnTypes(Dates, {{"snapshot_date", type date}}, "en-US"),
+				    Sorted = Table.Sort(Typed, {{"snapshot_date", Order.Ascending}}),
+				    Indexed = Table.AddIndexColumn(Sorted, "snapshot_number", 1, 1, Int64.Type),
+				    Latest = List.Max(Sorted[snapshot_date]),
+				    AddLabel = Table.AddColumn(Indexed, "snapshot_label", each Date.ToText([snapshot_date], [Format = "MMM d, yyyy", Culture = "en-US"]), type text),
+				    AddLatest = Table.AddColumn(AddLabel, "is_latest_snapshot", each if [snapshot_date] = Latest then "Yes" else "No", type text)
+				in
+				    AddLatest
+

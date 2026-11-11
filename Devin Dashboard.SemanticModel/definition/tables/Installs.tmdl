@@ -1,0 +1,499 @@
+/// One row per software install per monthly snapshot. Status and day counts are evaluated at each row's snapshot date.
+table Installs
+	lineageTag: 0123ddb0-bcdf-49e8-be30-85a14a070dba
+
+	/// Installs at the latest snapshot in context (each point on a snapshot axis shows that snapshot).
+	measure Installs =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			RETURN
+			    CALCULATE ( COUNTROWS ( 'Installs' ), 'Snapshot'[Snapshot Date] = _snapshot )
+		formatString: #,##0
+		displayFolder: Core
+		lineageTag: 0bee436f-95dd-4083-b29c-f4a2de696788
+
+	/// Installs whose effective EOS date is on or before the snapshot date, at the latest snapshot in context.
+	measure 'Installs Past EOS' =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			VAR _installs = CALCULATE ( COUNTROWS ( 'Installs' ), 'Snapshot'[Snapshot Date] = _snapshot )
+			VAR _past = CALCULATE ( SUM ( 'Installs'[Is Past EOS] ), 'Snapshot'[Snapshot Date] = _snapshot )
+			RETURN
+			    IF ( NOT ISBLANK ( _installs ), _past + 0 )
+		formatString: #,##0
+		displayFolder: Core
+		lineageTag: b36b8ce6-afc4-42b5-b202-5659a2187f66
+
+	/// Share of installs past EOS. RAG: <=3% green, <=5% amber, >5% red, evaluated at whatever grain is in context.
+	measure '% Past EOS' = DIVIDE ( [Installs Past EOS], [Installs] )
+		formatString: 0.0%
+		displayFolder: Core
+		lineageTag: 0254c79e-a330-446a-8338-0b57e64f2bbc
+
+	/// Installs with no extended support, obsolete or end-of-life date.
+	measure 'Unknown EOS Installs' =
+			VAR _unknown = CALCULATE ( [Installs], KEEPFILTERS ( 'Installs'[EOS Status] = "Unknown" ) )
+			RETURN
+			    IF ( NOT ISBLANK ( [Installs] ), _unknown + 0 )
+		formatString: #,##0
+		displayFolder: Core
+		lineageTag: 65baac0c-2f44-4561-8493-8fef36b4cdd1
+
+	/// Hosts with at least one install at the latest snapshot in context.
+	measure 'Distinct Hosts' =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			RETURN
+			    CALCULATE ( DISTINCTCOUNT ( 'Installs'[Host Key] ), 'Snapshot'[Snapshot Date] = _snapshot )
+		formatString: #,##0
+		displayFolder: Core
+		lineageTag: 81ab8886-a111-4e9b-83b7-b8239ce72723
+
+	/// Snapshot immediately before the latest snapshot in context.
+	measure 'Prior Snapshot Date' =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			RETURN
+			    CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ), 'Snapshot'[Snapshot Date] < _snapshot )
+		formatString: yyyy-mm-dd
+		isHidden
+		displayFolder: Trend
+		lineageTag: 08a709fa-67e6-44d8-9573-8751829b0856
+
+	/// Installs at the prior snapshot.
+	measure 'Installs Prior Snapshot' =
+			VAR _prior = [Prior Snapshot Date]
+			RETURN
+			    IF ( NOT ISBLANK ( _prior ), CALCULATE ( [Installs], REMOVEFILTERS ( 'Snapshot' ), 'Snapshot'[Snapshot Date] = _prior ) )
+		formatString: #,##0
+		displayFolder: Trend
+		lineageTag: 9a99a9bf-e1b9-4dda-bc8a-ac59a90a4de0
+
+	/// Change in installs since the prior snapshot.
+	measure 'Installs Change vs Prior' =
+			VAR _prior = [Installs Prior Snapshot]
+			RETURN
+			    IF ( NOT ISBLANK ( _prior ), [Installs] - _prior )
+		formatString: +#,##0;-#,##0;0
+		displayFolder: Trend
+		lineageTag: 5bc25592-4946-47b2-96f9-ac8d4b3d40d7
+
+	/// % past EOS at the prior snapshot.
+	measure '% Past EOS Prior Snapshot' =
+			VAR _prior = [Prior Snapshot Date]
+			RETURN
+			    IF ( NOT ISBLANK ( _prior ), CALCULATE ( [% Past EOS], REMOVEFILTERS ( 'Snapshot' ), 'Snapshot'[Snapshot Date] = _prior ) )
+		formatString: 0.0%
+		displayFolder: Trend
+		lineageTag: 3ca231ab-c5b5-464a-b962-60c55dc815fb
+
+	/// Change in % past EOS since the prior snapshot, in percentage points (pp). Positive = worse.
+	measure '% Past EOS Change vs Prior (pp)' =
+			VAR _current = [% Past EOS]
+			VAR _prior = [% Past EOS Prior Snapshot]
+			RETURN
+			    IF ( NOT ISBLANK ( _current ) && NOT ISBLANK ( _prior ), ( _current - _prior ) * 100 )
+		formatString: +0.0 "pp";-0.0 "pp";0.0 "pp"
+		displayFolder: Trend
+		lineageTag: 3de397d9-8512-4bcd-8ca7-3c9a2c7a7262
+
+	/// 1 = % past EOS rising, -1 = falling, 0 = flat (within 0.05 pp). Drives the trend icon.
+	measure 'Trend Direction' =
+			VAR _change = [% Past EOS Change vs Prior (pp)]
+			RETURN
+			    SWITCH ( TRUE (), ISBLANK ( _change ), BLANK (), _change > 0.05, 1, _change < -0.05, -1, 0 )
+		formatString: 0
+		isHidden
+		displayFolder: Trend
+		lineageTag: 9df3b232-6fcb-409f-a64e-80a7932fc5fd
+
+	/// Green when % past EOS <= 3%, Amber when <= 5%, Red above 5%.
+	measure 'RAG Status' =
+			VAR _pct = [% Past EOS]
+			RETURN
+			    SWITCH ( TRUE (), ISBLANK ( _pct ), BLANK (), _pct <= 0.03, "Green", _pct <= 0.05, "Amber", "Red" )
+		displayFolder: RAG
+		lineageTag: cfdb45f6-3a0d-4b58-81c0-3e3efd2297a8
+
+	/// Text colour for % past EOS conditional formatting.
+	measure 'RAG Color' = SWITCH ( [RAG Status], "Green", "#2E8B47", "Amber", "#B47A00", "Red", "#D71E28" )
+		isHidden
+		displayFolder: RAG
+		lineageTag: fa681b94-21c8-4147-98cf-0037efa71ed1
+
+	/// Background colour for % past EOS conditional formatting.
+	measure 'RAG Background' = SWITCH ( [RAG Status], "Green", "#E3F1E7", "Amber", "#FFF4DC", "Red", "#FCE4E5" )
+		isHidden
+		displayFolder: RAG
+		lineageTag: 86f8a7b7-7c8b-45da-86ca-aed9edec9e28
+
+	/// Green threshold for % past EOS.
+	measure 'Target 3%' = 0.03
+		formatString: 0%
+		displayFolder: RAG
+		lineageTag: 9b51f1dc-b360-4e76-9848-e817c60d6837
+
+	/// Red threshold for % past EOS.
+	measure 'Limit 5%' = 0.05
+		formatString: 0%
+		displayFolder: RAG
+		lineageTag: 737e681b-b2de-468b-a959-5c6f047061ad
+
+	/// CIO orgs at or below 3% past EOS.
+	measure 'CIO Orgs Green' = COUNTROWS ( FILTER ( VALUES ( 'Host'[CIO Org] ), [RAG Status] = "Green" ) ) + 0
+		formatString: #,##0
+		displayFolder: RAG
+		lineageTag: 11586a6f-0252-4783-a961-738aa5092b5d
+
+	/// CIO orgs above 3% and at or below 5% past EOS.
+	measure 'CIO Orgs Amber' = COUNTROWS ( FILTER ( VALUES ( 'Host'[CIO Org] ), [RAG Status] = "Amber" ) ) + 0
+		formatString: #,##0
+		displayFolder: RAG
+		lineageTag: 707887e9-be1e-4612-ac04-8250d7461134
+
+	/// CIO orgs above 5% past EOS.
+	measure 'CIO Orgs Red' = COUNTROWS ( FILTER ( VALUES ( 'Host'[CIO Org] ), [RAG Status] = "Red" ) ) + 0
+		formatString: #,##0
+		displayFolder: RAG
+		lineageTag: 4a656704-159b-4dde-a459-cb6b7e50f80c
+
+	/// Managed-by groups at or below 3% past EOS.
+	measure 'Groups Green' = COUNTROWS ( FILTER ( VALUES ( 'Host'[Managed By Group] ), [RAG Status] = "Green" ) ) + 0
+		formatString: #,##0
+		displayFolder: RAG
+		lineageTag: 80b4f195-3b7d-4d44-b6b9-6a30221dce8e
+
+	/// Managed-by groups above 3% and at or below 5% past EOS.
+	measure 'Groups Amber' = COUNTROWS ( FILTER ( VALUES ( 'Host'[Managed By Group] ), [RAG Status] = "Amber" ) ) + 0
+		formatString: #,##0
+		displayFolder: RAG
+		lineageTag: 52a65bcc-60aa-47b6-b2f5-7af82b6e5f78
+
+	/// Managed-by groups above 5% past EOS.
+	measure 'Groups Red' = COUNTROWS ( FILTER ( VALUES ( 'Host'[Managed By Group] ), [RAG Status] = "Red" ) ) + 0
+		formatString: #,##0
+		displayFolder: RAG
+		lineageTag: 496f8507-d0d1-425d-8690-1f114fe40662
+
+	/// CIO org counts by RAG band, as text for a card.
+	measure 'CIO Org RAG Summary' = [CIO Orgs Red] & " red  ·  " & [CIO Orgs Amber] & " amber  ·  " & [CIO Orgs Green] & " green"
+		displayFolder: RAG
+		lineageTag: 12c20e8f-f1f2-44cf-92a9-6a6aaff793ac
+
+	/// Managed-by group counts by RAG band, as text for a card.
+	measure 'Group RAG Summary' = [Groups Red] & " red  ·  " & [Groups Amber] & " amber  ·  " & [Groups Green] & " green"
+		displayFolder: RAG
+		lineageTag: 0727cbc8-81b7-4163-bb92-9a6daead5050
+
+	/// Installs whose effective EOS date falls in the 6 months after the latest snapshot (anchored to the snapshot, not today).
+	measure 'Installs Reaching EOS 6M' =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			VAR _horizon = EDATE ( _snapshot, 6 )
+			VAR _reaching =
+			    CALCULATE (
+			        COUNTROWS ( 'Installs' ),
+			        'Snapshot'[Snapshot Date] = _snapshot,
+			        'Installs'[Effective EOS Date] > _snapshot,
+			        'Installs'[Effective EOS Date] <= _horizon
+			    )
+			RETURN
+			    IF ( NOT ISBLANK ( [Installs] ), _reaching + 0 )
+		formatString: #,##0
+		displayFolder: Projection
+		lineageTag: 4d1d70ea-c067-4509-98ad-55ec46a21e1a
+
+	/// Do-nothing projection: % past EOS 6 months after the latest snapshot if nothing is remediated.
+	measure 'Projected % Past EOS 6M' = DIVIDE ( [Installs Past EOS] + [Installs Reaching EOS 6M], [Installs] )
+		formatString: 0.0%
+		displayFolder: Projection
+		lineageTag: e1261fe0-ebb5-435f-84ef-0215640f7225
+
+	/// Installs whose effective EOS date falls in the Upcoming Month row (the first month also covers the rest of the snapshot month).
+	measure 'Installs Crossing EOS' =
+			VAR _snapshot = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+			VAR _start = MIN ( 'Upcoming Month'[Window Start] )
+			VAR _end = MAX ( 'Upcoming Month'[Month End] )
+			RETURN
+			    CALCULATE (
+			        COUNTROWS ( 'Installs' ),
+			        'Snapshot'[Snapshot Date] = _snapshot,
+			        'Installs'[Effective EOS Date] > _start,
+			        'Installs'[Effective EOS Date] <= _end
+			    ) + 0
+		formatString: #,##0
+		displayFolder: Projection
+		lineageTag: cba541a1-8308-4e1f-9459-518f69e2c617
+
+	/// Do-nothing projection at the end of the Upcoming Month: (installs already past EOS + installs crossing EOS by month end) / installs.
+	measure 'Projected % Past EOS' =
+			VAR _snapshot = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+			VAR _end = MAX ( 'Upcoming Month'[Month End] )
+			VAR _crossing =
+			    CALCULATE (
+			        COUNTROWS ( 'Installs' ),
+			        'Snapshot'[Snapshot Date] = _snapshot,
+			        'Installs'[Effective EOS Date] > _snapshot,
+			        'Installs'[Effective EOS Date] <= _end
+			    )
+			RETURN
+			    DIVIDE ( [Installs Past EOS] + _crossing, [Installs] )
+		formatString: 0.00%
+		displayFolder: Projection
+		lineageTag: 2cfdb0a1-9090-4d9b-99e8-3967bc85ea20
+
+	/// Average days since aging start date, over installs that have one, at the latest snapshot.
+	measure 'Avg Days Non-Compliant' =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			RETURN
+			    CALCULATE ( AVERAGE ( 'Installs'[Days Non-Compliant] ), 'Snapshot'[Snapshot Date] = _snapshot )
+		formatString: #,##0
+		displayFolder: Aging
+		lineageTag: 5286c925-6f05-4385-b183-16b968dc02d1
+
+	/// Longest time any install in context has been non-compliant, in days.
+	measure 'Max Days Non-Compliant' =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			RETURN
+			    CALCULATE ( MAX ( 'Installs'[Days Non-Compliant] ), 'Snapshot'[Snapshot Date] = _snapshot )
+		formatString: #,##0
+		displayFolder: Aging
+		lineageTag: eeb1512b-af30-4485-bce4-96358f8c4a3f
+
+	/// Days since the effective EOS date for the longest-expired install in context.
+	measure 'Max Days Past EOS' =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			RETURN
+			    CALCULATE ( MAX ( 'Installs'[Days Past EOS] ), 'Snapshot'[Snapshot Date] = _snapshot )
+		formatString: #,##0
+		displayFolder: Aging
+		lineageTag: dd7bed41-4568-427b-9c77-c278da5dc832
+
+	/// Earliest effective EOS date among installs in context.
+	measure 'Earliest Effective EOS' =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			RETURN
+			    CALCULATE ( MIN ( 'Installs'[Effective EOS Date] ), 'Snapshot'[Snapshot Date] = _snapshot )
+		formatString: yyyy-mm-dd
+		displayFolder: Detail
+		lineageTag: 31d6bb06-eb5e-449a-a511-509b43bdb663
+
+	/// The version when only one is in context, otherwise 'Multiple (n)'.
+	measure 'Version Label' =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			VAR _versions = CALCULATETABLE ( SUMMARIZE ( 'Installs', 'Product'[Version] ), 'Snapshot'[Snapshot Date] = _snapshot )
+			VAR _count = COUNTROWS ( _versions )
+			RETURN
+			    SWITCH ( TRUE (), _count = 1, MAXX ( _versions, 'Product'[Version] ), _count > 1, "Multiple (" & _count & ")" )
+		displayFolder: Detail
+		lineageTag: 27009cb8-978e-4edc-8b6d-b68ffb49e4f5
+
+	/// Latest snapshot date, as text for page subtitles.
+	measure 'Latest Snapshot Label' =
+			VAR _snapshot = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+			RETURN
+			    "Latest snapshot " & FORMAT ( _snapshot, "mmm d, yyyy" )
+		displayFolder: Titles
+		lineageTag: e62a9d66-d97f-4922-9ab2-190dc03ea216
+
+	/// Page 1 subtitle stating the current position against the thresholds.
+	measure 'Executive Subtitle' = [Latest Snapshot Label] & "  ·  " & FORMAT ( [% Past EOS], "0.0%" ) & " past EOS (" & [RAG Status] & ")  ·  target <= 3%, limit 5%"
+		displayFolder: Titles
+		lineageTag: f414aeaa-da39-4c39-8d3d-0422990d2b56
+
+	/// RAG band and change vs prior snapshot for the % past EOS card.
+	measure '% Past EOS Card Subtitle' =
+			VAR _change = [% Past EOS Change vs Prior (pp)]
+			RETURN
+			    [RAG Status] & IF ( NOT ISBLANK ( _change ), "  ·  " & FORMAT ( _change, "+0.0;-0.0;0.0" ) & " pp vs prior" )
+		displayFolder: Titles
+		lineageTag: 03812be4-a3cd-401a-bfa0-f8cd169616fc
+
+	/// Change in installs vs prior snapshot for the installs card.
+	measure 'Installs Card Subtitle' =
+			VAR _change = [Installs Change vs Prior]
+			RETURN
+			    IF ( NOT ISBLANK ( _change ), FORMAT ( _change, "+#,##0;-#,##0;0" ) & " vs prior snapshot" )
+		displayFolder: Titles
+		lineageTag: c674afe7-1647-4efd-b132-b5491bfea4e7
+
+	/// Unknown-EOS count shown under the past-EOS card.
+	measure 'Past EOS Card Subtitle' = FORMAT ( [Unknown EOS Installs], "#,##0" ) & " installs have no EOS date"
+		displayFolder: Titles
+		lineageTag: 801fa5e1-762e-41a3-b2a7-47735b077400
+
+	/// Do-nothing projection shown under the reaching-EOS card.
+	measure 'Reaching EOS Card Subtitle' = "Projected " & FORMAT ( [Projected % Past EOS 6M], "0.0%" ) & " past EOS in 6 months if not remediated"
+		displayFolder: Titles
+		lineageTag: ace31445-5885-4356-a738-84163fd65fd2
+
+	/// Context under the average days non-compliant card.
+	measure 'Days Non-Compliant Card Subtitle' =
+			VAR _snapshot = MAX ( 'Snapshot'[Snapshot Date] )
+			VAR _withAging =
+			    CALCULATE (
+			        COUNTROWS ( 'Installs' ),
+			        'Snapshot'[Snapshot Date] = _snapshot,
+			        NOT ISBLANK ( 'Installs'[Aging Start Date] )
+			    )
+			RETURN
+			    "Max " & FORMAT ( [Max Days Non-Compliant], "#,##0" ) & " days  ·  aging date known for " & FORMAT ( _withAging + 0, "#,##0" ) & " installs"
+		displayFolder: Titles
+		lineageTag: 17c727a8-050d-4cd3-8f4a-8a57071a9748
+
+	/// Snapshot the row belongs to (relationship to Snapshot).
+	column 'Snapshot Date'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		isAvailableInMdx: false
+		lineageTag: 728aaa56-762f-4a15-b3b8-3557e9ec4b9d
+		summarizeBy: none
+		sourceColumn: snapshot_date
+
+	/// Software install identifier (stable across snapshots).
+	column 'Install ID'
+		dataType: string
+		lineageTag: 8e9f66c0-a22d-46e0-9637-94eac990d7bd
+		summarizeBy: none
+		sourceColumn: install_id
+
+	column 'Host Key'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: bf928772-b452-4d62-9e24-95b97651adc9
+		summarizeBy: none
+		sourceColumn: ci_id
+
+	column 'Release Key'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: fca5e7d5-6e3a-46ba-b55c-f9313201f220
+		summarizeBy: none
+		sourceColumn: technopedia_release_id
+
+	/// Product edition installed.
+	column Edition
+		dataType: string
+		lineageTag: 3d1bce4c-80bf-47da-89df-2478bdda5581
+		summarizeBy: none
+		sourceColumn: edition
+
+	/// Date the install was first discovered.
+	column 'Install Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 6c5a6485-4b0c-424f-bb79-ba2e3bddff9f
+		summarizeBy: none
+		sourceColumn: install_date
+
+	/// Most recent scan of the install.
+	column 'Last Scanned Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 923e4248-46e4-4a26-83c3-6befe549d1a0
+		summarizeBy: none
+		sourceColumn: last_scanned_date
+
+	/// Tool that discovered the install.
+	column 'Discovery Source'
+		dataType: string
+		lineageTag: 98b555a3-5068-4211-90c2-1fab90615c97
+		summarizeBy: none
+		sourceColumn: discovery_source
+
+	/// Operational status of the install.
+	column 'Software Operational Status'
+		dataType: string
+		lineageTag: e8750441-cdab-4beb-803a-19810bb665d7
+		summarizeBy: none
+		sourceColumn: software_operational_status
+
+	/// Operational status of the host at the snapshot.
+	column 'Host Operational Status'
+		dataType: string
+		lineageTag: 712e0268-dcc6-4378-9311-053a0d1b9915
+		summarizeBy: none
+		sourceColumn: host_operational_status
+
+	/// Date the install became non-compliant (blank for most installs).
+	column 'Aging Start Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 47277155-8285-4b59-b8b0-e83f8ade0a7d
+		summarizeBy: none
+		sourceColumn: aging_start_date
+
+	/// Reason recorded for the install becoming non-compliant.
+	column 'Potential Aging Cause'
+		dataType: string
+		lineageTag: 7f7f1ee1-872b-4dd9-bbdc-4d7fe88a2052
+		summarizeBy: none
+		sourceColumn: potential_aging_cause
+
+	/// End-of-support (EOS) date used for status: extended support end, else obsolete date, else end of life.
+	column 'Effective EOS Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 5d9145d4-9de4-4afc-b091-4f4e8a29a7e0
+		summarizeBy: none
+		sourceColumn: effective_eos_date
+
+	/// Past EOS when the effective EOS date is on or before the snapshot date; Extended when only end of life has passed; Supported otherwise; Unknown when no lifecycle date exists.
+	column 'EOS Status'
+		dataType: string
+		lineageTag: a99d3df5-4da4-4d0b-a1e8-e9e5bcfebd5a
+		summarizeBy: none
+		sourceColumn: eos_status
+		sortByColumn: 'EOS Status Order'
+
+	column 'EOS Status Order'
+		dataType: int64
+		isHidden
+		lineageTag: 48bf6294-4224-4e8f-9a5e-6135e482df9e
+		summarizeBy: none
+		sourceColumn: eos_status_order
+
+	column 'Is Past EOS'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 19fc6e3f-ccf9-4275-b89d-71c08c4d9b5f
+		summarizeBy: none
+		sourceColumn: is_past_eos
+
+	column 'Days Past EOS'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: c955ce3c-f3a8-4e57-b8ec-447d20c2b774
+		summarizeBy: none
+		sourceColumn: days_past_eos
+
+	column 'Days Non-Compliant'
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: b7b1fa01-047a-411c-bbff-65df50a3c409
+		summarizeBy: none
+		sourceColumn: days_non_compliant
+
+	partition Installs = m
+		mode: import
+		source =
+				let
+				    Bytes = if Text.StartsWith(SourceCsvPath, "http") then Web.Contents(SourceCsvPath) else File.Contents(SourceCsvPath),
+				    Csv = Csv.Document(Bytes, [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]),
+				    Selected = Table.SelectColumns(Promoted, {"snapshot_date", "install_id", "ci_id", "technopedia_release_id", "edition", "install_date", "last_scanned_date", "discovery_source", "software_operational_status", "host_operational_status", "end_of_life_date", "extended_support_end_date", "obsolete_date", "aging_start_date", "potential_aging_cause"}),
+				    Blanks = Table.ReplaceValue(Selected, "", null, Replacer.ReplaceValue, {"install_date", "last_scanned_date", "end_of_life_date", "extended_support_end_date", "obsolete_date", "aging_start_date", "potential_aging_cause"}),
+				    Typed = Table.TransformColumnTypes(Blanks, {{"snapshot_date", type date}, {"install_date", type date}, {"last_scanned_date", type date}, {"end_of_life_date", type date}, {"extended_support_end_date", type date}, {"obsolete_date", type date}, {"aging_start_date", type date}}, "en-US"),
+				    Keys = Table.TransformColumns(Typed, {{"ci_id", each Number.From(Text.AfterDelimiter(_, "CI")), Int64.Type}, {"technopedia_release_id", each Number.From(Text.AfterDelimiter(_, "T-REL-")), Int64.Type}}),
+				    // Effective EOS date = COALESCE(extended support end, obsolete, end of life)
+				    AddEffective = Table.AddColumn(Keys, "effective_eos_date", each if [extended_support_end_date] <> null then [extended_support_end_date] else if [obsolete_date] <> null then [obsolete_date] else [end_of_life_date], type nullable date),
+				    AddStatus = Table.AddColumn(AddEffective, "eos_status", each if [effective_eos_date] = null then "Unknown" else if [effective_eos_date] <= [snapshot_date] then "Past EOS" else if [end_of_life_date] <> null and [end_of_life_date] <= [snapshot_date] then "Extended" else "Supported", type text),
+				    AddStatusOrder = Table.AddColumn(AddStatus, "eos_status_order", each if [eos_status] = "Past EOS" then 1 else if [eos_status] = "Extended" then 2 else if [eos_status] = "Supported" then 3 else 4, Int64.Type),
+				    AddIsPast = Table.AddColumn(AddStatusOrder, "is_past_eos", each if [eos_status] = "Past EOS" then 1 else 0, Int64.Type),
+				    AddDaysPast = Table.AddColumn(AddIsPast, "days_past_eos", each if [eos_status] = "Past EOS" then Duration.Days([snapshot_date] - [effective_eos_date]) else null, Int64.Type),
+				    AddDaysNonCompliant = Table.AddColumn(AddDaysPast, "days_non_compliant", each if [aging_start_date] <> null then Duration.Days([snapshot_date] - [aging_start_date]) else null, Int64.Type),
+				    Result = Table.RemoveColumns(AddDaysNonCompliant, {"end_of_life_date", "extended_support_end_date", "obsolete_date"})
+				in
+				    Result
+

@@ -1,0 +1,48 @@
+table 'View By'
+	lineageTag: 4fda0b7a-fb73-4dc5-a5f5-8c5debf77e96
+
+	column 'View By Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 152130f1-44e8-49ec-8487-a63f62bf31d6
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+	column 'View By Fields'
+		dataType: string
+		isHidden
+		lineageTag: d423da59-c046-498e-ac15-a0f1fa5a9462
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'View By Order'
+
+		extendedProperty ParameterMetadata = {"version":3,"kind":2}
+
+	column 'View By'
+		dataType: string
+		lineageTag: 45510b6a-f447-45be-84cc-e4d615cebefc
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'View By Order'
+
+		relatedColumnDetails
+			groupByColumn: 'View By Fields'
+
+	/// Product shows Product > Version > Host; Organization shows CIO org > Managed-by group > Host. Select one.
+	column View
+		dataType: string
+		lineageTag: a2c0ca22-4734-4d2b-8b02-c636dccae3b3
+		summarizeBy: none
+		sourceColumn: [Value4]
+
+	partition 'View By' = calculated
+		mode: import
+		source =
+				{
+				    ("Product", NAMEOF('Product'[Product]), 0, "Product"),
+				    ("Version", NAMEOF('Product'[Version]), 1, "Product"),
+				    ("CIO Org", NAMEOF('Host'[CIO Org]), 2, "Organization"),
+				    ("Managed By Group", NAMEOF('Host'[Managed By Group]), 3, "Organization")
+				}
+

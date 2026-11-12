@@ -189,8 +189,8 @@ table Installs
 			    CALCULATE (
 			        COUNTROWS ( 'Installs' ),
 			        'Snapshot'[Snapshot Date] = _snapshot,
-			        'Installs'[Effective EOS Date] > _snapshot,
-			        'Installs'[Effective EOS Date] <= _horizon
+			        KEEPFILTERS ( 'Installs'[Effective EOS Date] > _snapshot ),
+			        KEEPFILTERS ( 'Installs'[Effective EOS Date] <= _horizon )
 			    )
 			RETURN
 			    IF ( NOT ISBLANK ( [Installs] ), _reaching + 0 )
@@ -213,8 +213,8 @@ table Installs
 			    CALCULATE (
 			        COUNTROWS ( 'Installs' ),
 			        'Snapshot'[Snapshot Date] = _snapshot,
-			        'Installs'[Effective EOS Date] > _start,
-			        'Installs'[Effective EOS Date] <= _end
+			        KEEPFILTERS ( 'Installs'[Effective EOS Date] > _start ),
+			        KEEPFILTERS ( 'Installs'[Effective EOS Date] <= _end )
 			    ) + 0
 		formatString: #,##0
 		displayFolder: Projection
@@ -228,8 +228,8 @@ table Installs
 			    CALCULATE (
 			        COUNTROWS ( 'Installs' ),
 			        'Snapshot'[Snapshot Date] = _snapshot,
-			        'Installs'[Effective EOS Date] > _snapshot,
-			        'Installs'[Effective EOS Date] <= _end
+			        KEEPFILTERS ( 'Installs'[Effective EOS Date] > _snapshot ),
+			        KEEPFILTERS ( 'Installs'[Effective EOS Date] <= _end )
 			    )
 			RETURN
 			    DIVIDE ( [Installs Past EOS] + _crossing, [Installs] )

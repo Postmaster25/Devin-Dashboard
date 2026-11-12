@@ -1,0 +1,4 @@
+/// Location of software_itam_eos_snapshots.csv. Accepts an http(s) URL or a local file path (e.g. C:\Data\software_itam_eos_snapshots.csv). Defaults to the copy committed in the Devin-Dashboard repo.
+expression SourceCsvPath = "https://raw.githubusercontent.com/Postmaster25/Devin-Dashboard/3c4c952e50ac6eda9fbfd417aed54ea8812b74cf/data/software_itam_eos_snapshots.csv" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 927e5472-fb2a-4917-8994-1ef6c2fadf33
+

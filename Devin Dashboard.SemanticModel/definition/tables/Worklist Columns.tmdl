@@ -1,0 +1,60 @@
+table 'Worklist Columns'
+	lineageTag: 1563a0bc-2f8a-4ebd-b265-4c043bca2090
+
+	column 'Worklist Columns Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c394de0b-dc60-4dbc-b919-5fe49b6c4c2a
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+	column 'Worklist Columns Fields'
+		dataType: string
+		isHidden
+		lineageTag: 5f207e7a-bf13-4e91-871d-d1fc5b3417ad
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Worklist Columns Order'
+
+		extendedProperty ParameterMetadata = {"version":3,"kind":2}
+
+	column 'Worklist Columns'
+		dataType: string
+		lineageTag: 4aa5f43b-bac2-4a78-b4de-5fdf894bddfa
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Worklist Columns Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Worklist Columns Fields'
+
+	partition 'Worklist Columns' = calculated
+		mode: import
+		source =
+				{
+				    ("Install ID", NAMEOF('Installs'[Install ID]), 0),
+				    ("Host", NAMEOF('Host'[Host]), 1),
+				    ("CI Type", NAMEOF('Host'[CI Type]), 2),
+				    ("Environment", NAMEOF('Host'[Environment]), 3),
+				    ("Business Criticality", NAMEOF('Host'[Business Criticality]), 4),
+				    ("Product", NAMEOF('Product'[Product]), 5),
+				    ("Version", NAMEOF('Product'[Version]), 6),
+				    ("Manufacturer", NAMEOF('Product'[Manufacturer]), 7),
+				    ("Edition", NAMEOF('Installs'[Edition]), 8),
+				    ("Product Category", NAMEOF('Product'[Product Category]), 9),
+				    ("Managed By Group", NAMEOF('Host'[Managed By Group]), 10),
+				    ("Group Manager", NAMEOF('Host'[Group Manager]), 11),
+				    ("CIO Org", NAMEOF('Host'[CIO Org]), 12),
+				    ("CIO Org Manager", NAMEOF('Host'[CIO Org Manager]), 13),
+				    ("EOS Status", NAMEOF('Installs'[EOS Status]), 14),
+				    ("End of Life Date", NAMEOF('Product'[End of Life Date]), 15),
+				    ("Extended Support End Date", NAMEOF('Product'[Extended Support End Date]), 16),
+				    ("Obsolete Date", NAMEOF('Product'[Obsolete Date]), 17),
+				    ("Effective EOS Date", NAMEOF('Installs'[Effective EOS Date]), 18),
+				    ("EOS Basis", NAMEOF('Product'[EOS Basis]), 19),
+				    ("Aging Start Date", NAMEOF('Installs'[Aging Start Date]), 20),
+				    ("City", NAMEOF('Host'[City]), 21),
+				    ("Country", NAMEOF('Host'[Country]), 22)
+				}
+

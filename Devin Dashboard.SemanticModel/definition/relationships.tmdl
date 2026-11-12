@@ -1,0 +1,12 @@
+relationship 'Installs to Snapshot'
+	fromColumn: Installs.'Snapshot Date'
+	toColumn: Snapshot.'Snapshot Date'
+
+relationship 'Installs to Host'
+	fromColumn: Installs.'Host Key'
+	toColumn: Host.'Host Key'
+
+relationship 'Installs to Product'
+	fromColumn: Installs.'Release Key'
+	toColumn: Product.'Release Key'
+

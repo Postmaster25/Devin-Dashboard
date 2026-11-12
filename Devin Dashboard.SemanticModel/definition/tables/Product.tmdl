@@ -1,0 +1,121 @@
+/// One row per product release (Technopedia release) with its vendor lifecycle dates.
+table Product
+	lineageTag: 59fcf085-4524-478a-8685-76dd9f31d72a
+
+	column 'Release Key'
+		dataType: int64
+		isHidden
+		isKey
+		lineageTag: e04870bf-ea4e-47ed-bf88-303ce877ea7d
+		summarizeBy: none
+		sourceColumn: release_key
+
+	/// Technopedia release identifier.
+	column 'Release ID'
+		dataType: string
+		lineageTag: 30f2a13a-20ad-42a6-9ac2-d426347fdfcc
+		summarizeBy: none
+		sourceColumn: technopedia_release_id
+
+	/// Technopedia product identifier.
+	column 'Product ID'
+		dataType: string
+		lineageTag: 23bc559d-2edd-456f-8873-90ce3b374342
+		summarizeBy: none
+		sourceColumn: technopedia_product_id
+
+	/// Normalized product name.
+	column Product
+		dataType: string
+		lineageTag: 8b6c51cb-0cb2-43c2-a565-de7c193eb8ca
+		summarizeBy: none
+		sourceColumn: normalized_product_name
+
+	/// Normalized product version.
+	column Version
+		dataType: string
+		lineageTag: fe4aa412-cfad-4148-84d9-3908fd885792
+		summarizeBy: none
+		sourceColumn: normalized_version
+
+	/// Normalized manufacturer name.
+	column Manufacturer
+		dataType: string
+		lineageTag: 7366d960-7a1d-43a7-80c2-dac25f53f0db
+		summarizeBy: none
+		sourceColumn: normalized_manufacturer
+
+	/// Product category (Database, Web Server, ...).
+	column 'Product Category'
+		dataType: string
+		lineageTag: 202fa14d-f1d1-4080-ae73-32f67ce62794
+		summarizeBy: none
+		sourceColumn: product_category
+
+	/// Vendor general availability date.
+	column 'General Availability Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: a63969fe-467c-492d-9f0a-0eb26a6daeda
+		summarizeBy: none
+		sourceColumn: general_availability_date
+
+	/// Vendor end-of-life date.
+	column 'End of Life Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 14abc8ee-b8a0-4421-a402-3239ff5a4482
+		summarizeBy: none
+		sourceColumn: end_of_life_date
+
+	/// Vendor extended support end date (blank for most releases).
+	column 'Extended Support End Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 20962966-18c1-4156-8ef5-b5c77b7983d3
+		summarizeBy: none
+		sourceColumn: extended_support_end_date
+
+	/// Vendor obsolete date.
+	column 'Obsolete Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: c0955c2c-61a7-42f8-a3d5-c0644177bc92
+		summarizeBy: none
+		sourceColumn: obsolete_date
+
+	/// Which lifecycle date supplies the effective EOS date.
+	column 'EOS Basis'
+		dataType: string
+		lineageTag: 87d9c411-fbe3-4c5e-8602-a3cc7c616037
+		summarizeBy: none
+		sourceColumn: eos_basis
+
+	/// Product > version drill path.
+	hierarchy 'Product Version'
+		lineageTag: f3ceaa61-88a0-494f-845a-902a13e09ea5
+
+		level Product
+			lineageTag: 9019843f-e35c-4798-b49f-2f57341a87da
+			column: Product
+
+		level Version
+			lineageTag: ef29fc70-26b3-4230-bfaf-e781fce9f5c8
+			column: Version
+
+	partition Product = m
+		mode: import
+		source =
+				let
+				    Bytes = if Text.StartsWith(SourceCsvPath, "http") then Web.Contents(SourceCsvPath) else File.Contents(SourceCsvPath),
+				    Csv = Csv.Document(Bytes, [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]),
+				    Selected = Table.SelectColumns(Promoted, {"technopedia_release_id", "technopedia_product_id", "normalized_product_name", "normalized_version", "normalized_manufacturer", "product_category", "general_availability_date", "end_of_life_date", "extended_support_end_date", "obsolete_date"}),
+				    Distinct = Table.Distinct(Selected, {"technopedia_release_id"}),
+				    Blanks = Table.ReplaceValue(Distinct, "", null, Replacer.ReplaceValue, {"general_availability_date", "end_of_life_date", "extended_support_end_date", "obsolete_date"}),
+				    Typed = Table.TransformColumnTypes(Blanks, {{"general_availability_date", type date}, {"end_of_life_date", type date}, {"extended_support_end_date", type date}, {"obsolete_date", type date}}, "en-US"),
+				    AddKey = Table.AddColumn(Typed, "release_key", each Number.From(Text.AfterDelimiter([technopedia_release_id], "T-REL-")), Int64.Type),
+				    AddBasis = Table.AddColumn(AddKey, "eos_basis", each if [extended_support_end_date] <> null then "Extended support end" else if [obsolete_date] <> null then "Obsolete" else if [end_of_life_date] <> null then "End of life" else "None", type text)
+				in
+				    AddBasis
+

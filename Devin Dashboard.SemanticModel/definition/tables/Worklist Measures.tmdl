@@ -1,0 +1,45 @@
+table 'Worklist Measures'
+	lineageTag: eb6c667c-0dca-4756-ad33-a4b3934482d9
+
+	column 'Worklist Measures Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9d72ccc2-6618-4a02-91ec-62a9eea9d61a
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+	column 'Worklist Measures Fields'
+		dataType: string
+		isHidden
+		lineageTag: d5aaf871-18ff-40ca-86b7-ed1741c9c06e
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Worklist Measures Order'
+
+		extendedProperty ParameterMetadata = {"version":3,"kind":2}
+
+	column 'Worklist Measures'
+		dataType: string
+		lineageTag: 2f70491a-05f6-476d-9cf8-69c99243111c
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Worklist Measures Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Worklist Measures Fields'
+
+	partition 'Worklist Measures' = calculated
+		mode: import
+		source =
+				{
+				    ("Installs", NAMEOF('Installs'[Installs]), 0),
+				    ("Installs Past EOS", NAMEOF('Installs'[Installs Past EOS]), 1),
+				    ("% Past EOS", NAMEOF('Installs'[% Past EOS]), 2),
+				    ("Reaching EOS in 6 Months", NAMEOF('Installs'[Installs Reaching EOS 6M]), 3),
+				    ("Hosts", NAMEOF('Installs'[Distinct Hosts]), 4),
+				    ("Max Days Past EOS", NAMEOF('Installs'[Max Days Past EOS]), 5),
+				    ("Max Days Non-Compliant", NAMEOF('Installs'[Max Days Non-Compliant]), 6),
+				    ("Avg Days Non-Compliant", NAMEOF('Installs'[Avg Days Non-Compliant]), 7)
+				}
+

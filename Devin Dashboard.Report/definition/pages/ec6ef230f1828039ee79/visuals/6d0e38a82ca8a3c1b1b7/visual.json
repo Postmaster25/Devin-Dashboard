@@ -141,6 +141,21 @@
           "selector": {
             "metadata": "Installs.Limit 5%"
           }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFBB41'"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       ],
       "lineStyles": [
@@ -190,6 +205,20 @@
           },
           "selector": {
             "metadata": "Installs.Limit 5%"
+          }
+        },
+        {
+          "properties": {
+            "labelPosition": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Above'"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Projected % Past EOS"
           }
         }
       ],

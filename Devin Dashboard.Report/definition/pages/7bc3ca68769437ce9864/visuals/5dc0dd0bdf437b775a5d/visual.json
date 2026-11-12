@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Installs.Install ID",
-              "nativeQueryRef": "Install ID"
+              "nativeQueryRef": "Install ID",
+              "displayName": "Install ID"
             },
             {
               "field": {
@@ -41,21 +42,8 @@
                 }
               },
               "queryRef": "Host.Host",
-              "nativeQueryRef": "Host"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Host"
-                    }
-                  },
-                  "Property": "CI Type"
-                }
-              },
-              "queryRef": "Host.CI Type",
-              "nativeQueryRef": "CI Type"
+              "nativeQueryRef": "Host",
+              "displayName": "Host"
             },
             {
               "field": {
@@ -69,7 +57,8 @@
                 }
               },
               "queryRef": "Host.Environment",
-              "nativeQueryRef": "Environment"
+              "nativeQueryRef": "Environment",
+              "displayName": "Environment"
             },
             {
               "field": {
@@ -83,7 +72,8 @@
                 }
               },
               "queryRef": "Host.Business Criticality",
-              "nativeQueryRef": "Business Criticality"
+              "nativeQueryRef": "Business Criticality",
+              "displayName": "Business Criticality"
             },
             {
               "field": {
@@ -97,7 +87,8 @@
                 }
               },
               "queryRef": "Product.Product",
-              "nativeQueryRef": "Product"
+              "nativeQueryRef": "Product",
+              "displayName": "Product"
             },
             {
               "field": {
@@ -111,49 +102,8 @@
                 }
               },
               "queryRef": "Product.Version",
-              "nativeQueryRef": "Version"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Product"
-                    }
-                  },
-                  "Property": "Manufacturer"
-                }
-              },
-              "queryRef": "Product.Manufacturer",
-              "nativeQueryRef": "Manufacturer"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Installs"
-                    }
-                  },
-                  "Property": "Edition"
-                }
-              },
-              "queryRef": "Installs.Edition",
-              "nativeQueryRef": "Edition"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Product"
-                    }
-                  },
-                  "Property": "Product Category"
-                }
-              },
-              "queryRef": "Product.Product Category",
-              "nativeQueryRef": "Product Category"
+              "nativeQueryRef": "Version",
+              "displayName": "Version"
             },
             {
               "field": {
@@ -167,49 +117,8 @@
                 }
               },
               "queryRef": "Host.Managed By Group",
-              "nativeQueryRef": "Managed By Group"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Host"
-                    }
-                  },
-                  "Property": "Group Manager"
-                }
-              },
-              "queryRef": "Host.Group Manager",
-              "nativeQueryRef": "Group Manager"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Host"
-                    }
-                  },
-                  "Property": "CIO Org"
-                }
-              },
-              "queryRef": "Host.CIO Org",
-              "nativeQueryRef": "CIO Org"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Host"
-                    }
-                  },
-                  "Property": "CIO Org Manager"
-                }
-              },
-              "queryRef": "Host.CIO Org Manager",
-              "nativeQueryRef": "CIO Org Manager"
+              "nativeQueryRef": "Managed By Group",
+              "displayName": "Managed By Group"
             },
             {
               "field": {
@@ -223,49 +132,8 @@
                 }
               },
               "queryRef": "Installs.EOS Status",
-              "nativeQueryRef": "EOS Status"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Product"
-                    }
-                  },
-                  "Property": "End of Life Date"
-                }
-              },
-              "queryRef": "Product.End of Life Date",
-              "nativeQueryRef": "End of Life Date"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Product"
-                    }
-                  },
-                  "Property": "Extended Support End Date"
-                }
-              },
-              "queryRef": "Product.Extended Support End Date",
-              "nativeQueryRef": "Extended Support End Date"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Product"
-                    }
-                  },
-                  "Property": "Obsolete Date"
-                }
-              },
-              "queryRef": "Product.Obsolete Date",
-              "nativeQueryRef": "Obsolete Date"
+              "nativeQueryRef": "EOS Status",
+              "displayName": "EOS Status"
             },
             {
               "field": {
@@ -279,63 +147,8 @@
                 }
               },
               "queryRef": "Installs.Effective EOS Date",
-              "nativeQueryRef": "Effective EOS Date"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Product"
-                    }
-                  },
-                  "Property": "EOS Basis"
-                }
-              },
-              "queryRef": "Product.EOS Basis",
-              "nativeQueryRef": "EOS Basis"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Installs"
-                    }
-                  },
-                  "Property": "Aging Start Date"
-                }
-              },
-              "queryRef": "Installs.Aging Start Date",
-              "nativeQueryRef": "Aging Start Date"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Host"
-                    }
-                  },
-                  "Property": "City"
-                }
-              },
-              "queryRef": "Host.City",
-              "nativeQueryRef": "City"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Host"
-                    }
-                  },
-                  "Property": "Country"
-                }
-              },
-              "queryRef": "Host.Country",
-              "nativeQueryRef": "Country"
+              "nativeQueryRef": "Effective EOS Date",
+              "displayName": "Effective EOS Date"
             },
             {
               "field": {
@@ -351,66 +164,6 @@
               "queryRef": "Installs.Installs",
               "nativeQueryRef": "Installs",
               "displayName": "Installs"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Installs"
-                    }
-                  },
-                  "Property": "Installs Past EOS"
-                }
-              },
-              "queryRef": "Installs.Installs Past EOS",
-              "nativeQueryRef": "Installs Past EOS",
-              "displayName": "Installs Past EOS"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Installs"
-                    }
-                  },
-                  "Property": "% Past EOS"
-                }
-              },
-              "queryRef": "Installs.% Past EOS",
-              "nativeQueryRef": "% Past EOS",
-              "displayName": "% Past EOS"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Installs"
-                    }
-                  },
-                  "Property": "Installs Reaching EOS 6M"
-                }
-              },
-              "queryRef": "Installs.Installs Reaching EOS 6M",
-              "nativeQueryRef": "Installs Reaching EOS 6M",
-              "displayName": "Reaching EOS in 6 Months"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Installs"
-                    }
-                  },
-                  "Property": "Distinct Hosts"
-                }
-              },
-              "queryRef": "Installs.Distinct Hosts",
-              "nativeQueryRef": "Distinct Hosts",
-              "displayName": "Hosts"
             },
             {
               "field": {
@@ -441,21 +194,6 @@
               "queryRef": "Installs.Max Days Non-Compliant",
               "nativeQueryRef": "Max Days Non-Compliant",
               "displayName": "Max Days Non-Compliant"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Installs"
-                    }
-                  },
-                  "Property": "Avg Days Non-Compliant"
-                }
-              },
-              "queryRef": "Installs.Avg Days Non-Compliant",
-              "nativeQueryRef": "Avg Days Non-Compliant",
-              "displayName": "Avg Days Non-Compliant"
             }
           ],
           "fieldParameters": [
@@ -471,7 +209,7 @@
                 }
               },
               "index": 0,
-              "length": 23
+              "length": 9
             },
             {
               "parameterExpr": {
@@ -484,8 +222,8 @@
                   "Property": "Worklist Measures"
                 }
               },
-              "index": 23,
-              "length": 8
+              "index": 1,
+              "length": 3
             }
           ]
         }
@@ -511,6 +249,17 @@
     },
     "objects": {
       "values": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        },
         {
           "properties": {
             "fontColor": {

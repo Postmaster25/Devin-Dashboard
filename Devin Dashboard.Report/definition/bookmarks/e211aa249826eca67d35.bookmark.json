@@ -38,7 +38,7 @@
                                               "Source": "w"
                                             }
                                           },
-                                          "Property": "Worklist Columns"
+                                          "Property": "Worklist Columns Fields"
                                         }
                                       }
                                     ],
@@ -46,38 +46,144 @@
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Product'"
+                                            "Value": "'''Product''[Product]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Version'"
+                                            "Value": "'''Product''[Version]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Manufacturer'"
+                                            "Value": "'''Product''[Manufacturer]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Effective EOS Date'"
+                                            "Value": "'''Installs''[Effective EOS Date]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'EOS Status'"
+                                            "Value": "'''Installs''[EOS Status]'"
                                           }
                                         }
                                       ]
+                                    ]
+                                  }
+                                },
+                                "Annotations": {
+                                  "filterExpressionMetadata": {
+                                    "expressions": [
+                                      {
+                                        "Column": {
+                                          "Expression": {
+                                            "SourceRef": {
+                                              "Entity": "Worklist Columns"
+                                            }
+                                          },
+                                          "Property": "Worklist Columns"
+                                        }
+                                      }
+                                    ],
+                                    "decomposedIdentities": {
+                                      "values": [
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Product''[Product]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Product''[Version]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Product''[Manufacturer]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Effective EOS Date]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[EOS Status]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      ],
+                                      "columns": [
+                                        {
+                                          "value": {
+                                            "Column": {
+                                              "Expression": {
+                                                "SourceRef": {
+                                                  "Entity": "Worklist Columns"
+                                                }
+                                              },
+                                              "Property": "Worklist Columns Fields"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "valueMap": [
+                                      {
+                                        "0": "Product"
+                                      },
+                                      {
+                                        "0": "Version"
+                                      },
+                                      {
+                                        "0": "Manufacturer"
+                                      },
+                                      {
+                                        "0": "Effective EOS Date"
+                                      },
+                                      {
+                                        "0": "EOS Status"
+                                      }
                                     ]
                                   }
                                 }
@@ -122,7 +228,7 @@
                                               "Source": "w"
                                             }
                                           },
-                                          "Property": "Worklist Measures"
+                                          "Property": "Worklist Measures Fields"
                                         }
                                       }
                                     ],
@@ -130,38 +236,144 @@
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Installs'"
+                                            "Value": "'''Installs''[Installs]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Hosts'"
+                                            "Value": "'''Installs''[Distinct Hosts]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Installs Past EOS'"
+                                            "Value": "'''Installs''[Installs Past EOS]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Reaching EOS in 6 Months'"
+                                            "Value": "'''Installs''[Installs Reaching EOS 6M]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Max Days Past EOS'"
+                                            "Value": "'''Installs''[Max Days Past EOS]'"
                                           }
                                         }
                                       ]
+                                    ]
+                                  }
+                                },
+                                "Annotations": {
+                                  "filterExpressionMetadata": {
+                                    "expressions": [
+                                      {
+                                        "Column": {
+                                          "Expression": {
+                                            "SourceRef": {
+                                              "Entity": "Worklist Measures"
+                                            }
+                                          },
+                                          "Property": "Worklist Measures"
+                                        }
+                                      }
+                                    ],
+                                    "decomposedIdentities": {
+                                      "values": [
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Installs]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Distinct Hosts]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Installs Past EOS]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Installs Reaching EOS 6M]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Max Days Past EOS]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      ],
+                                      "columns": [
+                                        {
+                                          "value": {
+                                            "Column": {
+                                              "Expression": {
+                                                "SourceRef": {
+                                                  "Entity": "Worklist Measures"
+                                                }
+                                              },
+                                              "Property": "Worklist Measures Fields"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "valueMap": [
+                                      {
+                                        "0": "Installs"
+                                      },
+                                      {
+                                        "0": "Hosts"
+                                      },
+                                      {
+                                        "0": "Installs Past EOS"
+                                      },
+                                      {
+                                        "0": "Reaching EOS in 6 Months"
+                                      },
+                                      {
+                                        "0": "Max Days Past EOS"
+                                      }
                                     ]
                                   }
                                 }

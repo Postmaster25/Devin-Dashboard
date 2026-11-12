@@ -27,7 +27,9 @@
                 }
               },
               "queryRef": "Product.Product",
-              "nativeQueryRef": "Product"
+              "nativeQueryRef": "Product",
+              "displayName": "Product",
+              "active": true
             },
             {
               "field": {
@@ -41,35 +43,9 @@
                 }
               },
               "queryRef": "Product.Version",
-              "nativeQueryRef": "Version"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Host"
-                    }
-                  },
-                  "Property": "CIO Org"
-                }
-              },
-              "queryRef": "Host.CIO Org",
-              "nativeQueryRef": "CIO Org"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Host"
-                    }
-                  },
-                  "Property": "Managed By Group"
-                }
-              },
-              "queryRef": "Host.Managed By Group",
-              "nativeQueryRef": "Managed By Group"
+              "nativeQueryRef": "Version",
+              "displayName": "Version",
+              "active": true
             },
             {
               "field": {
@@ -83,7 +59,8 @@
                 }
               },
               "queryRef": "Host.Host",
-              "nativeQueryRef": "Host"
+              "nativeQueryRef": "Host",
+              "active": false
             }
           ],
           "fieldParameters": [
@@ -99,7 +76,7 @@
                 }
               },
               "index": 0,
-              "length": 4
+              "length": 2
             }
           ]
         },
@@ -234,6 +211,17 @@
       "values": [
         {
           "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        },
+        {
+          "properties": {
             "fontColor": {
               "solid": {
                 "color": {
@@ -317,6 +305,20 @@
                   "Value": "true"
                 }
               }
+            },
+            "columnAdjustment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'growToFit'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
             }
           }
         }
@@ -328,6 +330,13 @@
               "expr": {
                 "Literal": {
                   "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
                 }
               }
             }

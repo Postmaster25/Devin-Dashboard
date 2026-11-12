@@ -38,7 +38,7 @@
                                               "Source": "w"
                                             }
                                           },
-                                          "Property": "Worklist Columns"
+                                          "Property": "Worklist Columns Fields"
                                         }
                                       }
                                     ],
@@ -46,45 +46,165 @@
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Host'"
+                                            "Value": "'''Host''[Host]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'CI Type'"
+                                            "Value": "'''Host''[CI Type]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Environment'"
+                                            "Value": "'''Host''[Environment]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Business Criticality'"
+                                            "Value": "'''Host''[Business Criticality]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Managed By Group'"
+                                            "Value": "'''Host''[Managed By Group]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'CIO Org'"
+                                            "Value": "'''Host''[CIO Org]'"
                                           }
                                         }
                                       ]
+                                    ]
+                                  }
+                                },
+                                "Annotations": {
+                                  "filterExpressionMetadata": {
+                                    "expressions": [
+                                      {
+                                        "Column": {
+                                          "Expression": {
+                                            "SourceRef": {
+                                              "Entity": "Worklist Columns"
+                                            }
+                                          },
+                                          "Property": "Worklist Columns"
+                                        }
+                                      }
+                                    ],
+                                    "decomposedIdentities": {
+                                      "values": [
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Host''[Host]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Host''[CI Type]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Host''[Environment]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Host''[Business Criticality]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Host''[Managed By Group]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Host''[CIO Org]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      ],
+                                      "columns": [
+                                        {
+                                          "value": {
+                                            "Column": {
+                                              "Expression": {
+                                                "SourceRef": {
+                                                  "Entity": "Worklist Columns"
+                                                }
+                                              },
+                                              "Property": "Worklist Columns Fields"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "valueMap": [
+                                      {
+                                        "0": "Host"
+                                      },
+                                      {
+                                        "0": "CI Type"
+                                      },
+                                      {
+                                        "0": "Environment"
+                                      },
+                                      {
+                                        "0": "Business Criticality"
+                                      },
+                                      {
+                                        "0": "Managed By Group"
+                                      },
+                                      {
+                                        "0": "CIO Org"
+                                      }
                                     ]
                                   }
                                 }
@@ -129,7 +249,7 @@
                                               "Source": "w"
                                             }
                                           },
-                                          "Property": "Worklist Measures"
+                                          "Property": "Worklist Measures Fields"
                                         }
                                       }
                                     ],
@@ -137,45 +257,165 @@
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Installs'"
+                                            "Value": "'''Installs''[Installs]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Installs Past EOS'"
+                                            "Value": "'''Installs''[Installs Past EOS]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'% Past EOS'"
+                                            "Value": "'''Installs''[% Past EOS]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Reaching EOS in 6 Months'"
+                                            "Value": "'''Installs''[Installs Reaching EOS 6M]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Max Days Past EOS'"
+                                            "Value": "'''Installs''[Max Days Past EOS]'"
                                           }
                                         }
                                       ],
                                       [
                                         {
                                           "Literal": {
-                                            "Value": "'Max Days Non-Compliant'"
+                                            "Value": "'''Installs''[Max Days Non-Compliant]'"
                                           }
                                         }
                                       ]
+                                    ]
+                                  }
+                                },
+                                "Annotations": {
+                                  "filterExpressionMetadata": {
+                                    "expressions": [
+                                      {
+                                        "Column": {
+                                          "Expression": {
+                                            "SourceRef": {
+                                              "Entity": "Worklist Measures"
+                                            }
+                                          },
+                                          "Property": "Worklist Measures"
+                                        }
+                                      }
+                                    ],
+                                    "decomposedIdentities": {
+                                      "values": [
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Installs]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Installs Past EOS]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[% Past EOS]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Installs Reaching EOS 6M]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Max Days Past EOS]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ],
+                                        [
+                                          {
+                                            "0": [
+                                              {
+                                                "Literal": {
+                                                  "Value": "'''Installs''[Max Days Non-Compliant]'"
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      ],
+                                      "columns": [
+                                        {
+                                          "value": {
+                                            "Column": {
+                                              "Expression": {
+                                                "SourceRef": {
+                                                  "Entity": "Worklist Measures"
+                                                }
+                                              },
+                                              "Property": "Worklist Measures Fields"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "valueMap": [
+                                      {
+                                        "0": "Installs"
+                                      },
+                                      {
+                                        "0": "Installs Past EOS"
+                                      },
+                                      {
+                                        "0": "% Past EOS"
+                                      },
+                                      {
+                                        "0": "Reaching EOS in 6 Months"
+                                      },
+                                      {
+                                        "0": "Max Days Past EOS"
+                                      },
+                                      {
+                                        "0": "Max Days Non-Compliant"
+                                      }
                                     ]
                                   }
                                 }

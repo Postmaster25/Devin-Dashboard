@@ -192,7 +192,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#BFBFBF'"
+                      "Value": "'#D9D9D9'"
                     }
                   }
                 }
@@ -322,7 +322,7 @@
             "strokeTransparency": {
               "expr": {
                 "Literal": {
-                  "Value": "100D"
+                  "Value": "0D"
                 }
               }
             },
@@ -330,6 +330,13 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            },
+            "lineChartType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'linear'"
                 }
               }
             },
@@ -345,7 +352,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#BFBFBF'"
+                      "Value": "'#D9D9D9'"
                     }
                   }
                 }
@@ -420,6 +427,13 @@
                   "Value": "6D"
                 }
               }
+            },
+            "lineChartType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'linear'"
+                }
+              }
             }
           },
           "selector": {
@@ -462,6 +476,13 @@
                   "Value": "6D"
                 }
               }
+            },
+            "lineChartType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'linear'"
+                }
+              }
             }
           },
           "selector": {
@@ -490,6 +511,13 @@
                   "Value": "false"
                 }
               }
+            },
+            "lineChartType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'linear'"
+                }
+              }
             }
           },
           "selector": {
@@ -516,6 +544,13 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            },
+            "lineChartType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'linear'"
                 }
               }
             }
@@ -697,6 +732,13 @@
                   "Value": "true"
                 }
               }
+            },
+            "secTitleText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'% of installs past EOS'"
+                }
+              }
             }
           }
         }
@@ -813,7 +855,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'% of installs past EOS: trend and 6-month projection'"
+                  "Value": "'Past EOS trend and 6-month projection'"
                 }
               }
             },

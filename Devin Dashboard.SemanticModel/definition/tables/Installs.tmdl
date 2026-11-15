@@ -415,7 +415,7 @@ table Installs
 		displayFolder: Trend & Projection
 		lineageTag: 48193b77-04ef-46be-a703-b56ca084db53
 
-	/// Draws the vertical Current Day line: 0 at the snapshot before the latest and [Trend Axis Top] at the latest, plotted as a step line so the rise sits on the latest snapshot.
+	/// Draws the vertical Current Day line: below the axis (clipped) at the snapshot before the latest and [Trend Axis Top] at the latest, plotted as a step line so only the rise on the latest snapshot is visible.
 	measure 'Trend Current Day Line' =
 			VAR _latest = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
 			VAR _previous =
@@ -426,7 +426,7 @@ table Installs
 			    )
 			VAR _date = MAX ( 'Trend Date'[Date] )
 			RETURN
-			    SWITCH ( TRUE (), _date = _latest, [Trend Axis Top], _date = _previous, 0 )
+			    SWITCH ( TRUE (), _date = _latest, [Trend Axis Top], _date = _previous, - [Trend Axis Top] )
 		formatString: 0.0%
 		displayFolder: Trend & Projection
 		lineageTag: b21303be-296c-4a1a-b151-f2649993acb8

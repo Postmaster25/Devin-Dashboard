@@ -392,6 +392,45 @@ table Installs
 		displayFolder: Trend & Projection
 		lineageTag: b0a861a2-7f55-4501-ae9b-f0b87edc8ee6
 
+	/// Top of the line axis on the trend and projection chart: the highest actual or projected % past EOS (at least the 5% limit) plus 15% headroom. Sets the height of the projection shading and Current Day line.
+	measure 'Trend Axis Top' =
+			VAR _max =
+			    MAXX (
+			        ALL ( 'Trend Date' ),
+			        MAX ( [Trend % Past EOS], [Trend Projected % Past EOS] )
+			    )
+			RETURN
+			    MAX ( _max, [Limit 5%] ) * 1.15
+		formatString: 0.0%
+		isHidden
+		displayFolder: Trend & Projection
+		lineageTag: b7145db9-5bf8-4ac3-8e34-1ae0ee38811f
+
+	/// Draws the shaded projection region: [Trend Axis Top] from the latest snapshot onward, blank before it. Plotted as a shaded line with an invisible stroke.
+	measure 'Trend Projection Shading' =
+			VAR _latest = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+			RETURN
+			    IF ( MAX ( 'Trend Date'[Date] ) >= _latest, [Trend Axis Top] )
+		formatString: 0.0%
+		displayFolder: Trend & Projection
+		lineageTag: 48193b77-04ef-46be-a703-b56ca084db53
+
+	/// Draws the vertical Current Day line: 0 at the snapshot before the latest and [Trend Axis Top] at the latest, plotted as a step line so the rise sits on the latest snapshot.
+	measure 'Trend Current Day Line' =
+			VAR _latest = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+			VAR _previous =
+			    CALCULATE (
+			        MAX ( 'Trend Date'[Date] ),
+			        REMOVEFILTERS ( 'Trend Date' ),
+			        'Trend Date'[Date] < _latest
+			    )
+			VAR _date = MAX ( 'Trend Date'[Date] )
+			RETURN
+			    SWITCH ( TRUE (), _date = _latest, [Trend Axis Top], _date = _previous, 0 )
+		formatString: 0.0%
+		displayFolder: Trend & Projection
+		lineageTag: b21303be-296c-4a1a-b151-f2649993acb8
+
 	/// Snapshot the row belongs to (relationship to Snapshot).
 	column 'Snapshot Date'
 		dataType: dateTime

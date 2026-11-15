@@ -27,6 +27,14 @@ table 'Trend Date'
 		summarizeBy: none
 		sourceColumn: window_start
 
+	/// Axis label for the trend and projection chart: the date, with "(Current Day)" on the latest snapshot. Sorted by Date.
+	column Label
+		dataType: string
+		lineageTag: ee06029e-cdb4-4935-bca0-95258c420223
+		summarizeBy: none
+		sourceColumn: label
+		sortByColumn: Date
+
 	partition 'Trend Date' = m
 		mode: import
 		source =
@@ -41,7 +49,8 @@ table 'Trend Date'
 				    MonthEnds = List.Transform({1..6}, each Date.EndOfMonth(Date.AddMonths(Latest, _))),
 				    Projected = Table.FromRecords(List.Transform({0..5}, each [trend_date = MonthEnds{_}, period = "Projected", window_start = if _ = 0 then Latest else MonthEnds{_ - 1}])),
 				    Combined = Table.Combine({Actual, Projected}),
-				    Typed = Table.TransformColumnTypes(Combined, {{"trend_date", type date}, {"period", type text}, {"window_start", type date}})
+				    Labelled = Table.AddColumn(Combined, "label", each Date.ToText([trend_date], [Format = "d MMM yy", Culture = "en-US"]) & (if [trend_date] = Latest then " (Current Day)" else "")),
+				    Typed = Table.TransformColumnTypes(Labelled, {{"trend_date", type date}, {"period", type text}, {"window_start", type date}, {"label", type text}})
 				in
 				    Typed
 

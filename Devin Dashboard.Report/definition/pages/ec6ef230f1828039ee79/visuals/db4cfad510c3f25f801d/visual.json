@@ -23,11 +23,11 @@
                       "Entity": "Trend Date"
                     }
                   },
-                  "Property": "Date"
+                  "Property": "Label"
                 }
               },
-              "queryRef": "Trend Date.Date",
-              "nativeQueryRef": "Date",
+              "queryRef": "Trend Date.Label",
+              "nativeQueryRef": "Label",
               "displayName": "Date"
             }
           ]
@@ -61,12 +61,12 @@
                       "Entity": "Installs"
                     }
                   },
-                  "Property": "Trend % Past EOS"
+                  "Property": "Trend Projection Shading"
                 }
               },
-              "queryRef": "Installs.Trend % Past EOS",
-              "nativeQueryRef": "Trend % Past EOS",
-              "displayName": "% past EOS (actual)"
+              "queryRef": "Installs.Trend Projection Shading",
+              "nativeQueryRef": "Trend Projection Shading",
+              "displayName": "Projection (no remediation)"
             },
             {
               "field": {
@@ -76,12 +76,12 @@
                       "Entity": "Installs"
                     }
                   },
-                  "Property": "Trend Projected % Past EOS"
+                  "Property": "Trend Current Day Line"
                 }
               },
-              "queryRef": "Installs.Trend Projected % Past EOS",
-              "nativeQueryRef": "Trend Projected % Past EOS",
-              "displayName": "Projected % past EOS (no remediation)"
+              "queryRef": "Installs.Trend Current Day Line",
+              "nativeQueryRef": "Trend Current Day Line",
+              "displayName": "Current Day"
             },
             {
               "field": {
@@ -112,6 +112,36 @@
               "queryRef": "Installs.Limit 5%",
               "nativeQueryRef": "Limit 5%",
               "displayName": "Limit 5%"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Installs"
+                    }
+                  },
+                  "Property": "Trend % Past EOS"
+                }
+              },
+              "queryRef": "Installs.Trend % Past EOS",
+              "nativeQueryRef": "Trend % Past EOS",
+              "displayName": "% past EOS (actual)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Installs"
+                    }
+                  },
+                  "Property": "Trend Projected % Past EOS"
+                }
+              },
+              "queryRef": "Installs.Trend Projected % Past EOS",
+              "nativeQueryRef": "Trend Projected % Past EOS",
+              "displayName": "Projected % past EOS (no remediation)"
             }
           ]
         }
@@ -126,7 +156,7 @@
                     "Entity": "Trend Date"
                   }
                 },
-                "Property": "Date"
+                "Property": "Label"
               }
             },
             "direction": "Ascending"
@@ -153,6 +183,42 @@
           },
           "selector": {
             "metadata": "Installs.Trend Installs Crossing EOS"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#BFBFBF'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Projection Shading"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#3B3331'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Current Day Line"
           }
         },
         {
@@ -244,6 +310,87 @@
         }
       ],
       "lineStyles": [
+        {
+          "properties": {
+            "strokeWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            },
+            "strokeTransparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "100D"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "areaShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "areaColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#BFBFBF'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Projection Shading"
+          }
+        },
+        {
+          "properties": {
+            "strokeWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "lineChartType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'step'"
+                }
+              }
+            },
+            "interpolationStep": {
+              "expr": {
+                "Literal": {
+                  "Value": "'after'"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Current Day Line"
+          }
+        },
         {
           "properties": {
             "strokeWidth": {
@@ -401,6 +548,34 @@
             }
           },
           "selector": {
+            "metadata": "Installs.Trend Projection Shading"
+          }
+        },
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Current Day Line"
+          }
+        },
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          },
+          "selector": {
             "metadata": "Installs.Target 3%"
           }
         },
@@ -459,7 +634,7 @@
             "axisType": {
               "expr": {
                 "Literal": {
-                  "Value": "'Scalar'"
+                  "Value": "'Categorical'"
                 }
               }
             },
@@ -504,34 +679,7 @@
                 }
               }
             },
-            "secShowAxisTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "xAxisReferenceLine": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "displayName": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Current Day'"
-                }
-              }
-            },
-            "value": {
+            "secEnd": {
               "expr": {
                 "Measure": {
                   "Expression": {
@@ -539,116 +687,17 @@
                       "Entity": "Installs"
                     }
                   },
-                  "Property": "Current Day"
+                  "Property": "Trend Axis Top"
                 }
               }
             },
-            "lineColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#3B3331'"
-                    }
-                  }
-                }
-              }
-            },
-            "width": {
-              "expr": {
-                "Literal": {
-                  "Value": "2D"
-                }
-              }
-            },
-            "style": {
-              "expr": {
-                "Literal": {
-                  "Value": "'solid'"
-                }
-              }
-            },
-            "position": {
-              "expr": {
-                "Literal": {
-                  "Value": "'front'"
-                }
-              }
-            },
-            "dataLabelShow": {
+            "secShowAxisTitle": {
               "expr": {
                 "Literal": {
                   "Value": "true"
-                }
-              }
-            },
-            "dataLabelText": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Name'"
-                }
-              }
-            },
-            "dataLabelColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#3B3331'"
-                    }
-                  }
-                }
-              }
-            },
-            "dataLabelHorizontalPosition": {
-              "expr": {
-                "Literal": {
-                  "Value": "'right'"
-                }
-              }
-            },
-            "dataLabelVerticalPosition": {
-              "expr": {
-                "Literal": {
-                  "Value": "'above'"
-                }
-              }
-            },
-            "shadeShow": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "shadeRegion": {
-              "expr": {
-                "Literal": {
-                  "Value": "'after'"
-                }
-              }
-            },
-            "shadeColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#8C8C8C'"
-                    }
-                  }
-                }
-              }
-            },
-            "shadeTransparency": {
-              "expr": {
-                "Literal": {
-                  "Value": "88D"
                 }
               }
             }
-          },
-          "selector": {
-            "id": "1"
           }
         }
       ]
@@ -802,7 +851,7 @@
             "altText": {
               "expr": {
                 "Literal": {
-                  "Value": "'Combo chart. Red line: actual percent of installs past end of support at each snapshot. A vertical Current Day line marks the latest snapshot; the shaded area to its right is a do-nothing projection: a dashed charcoal line shows projected percent past EOS at each month end, and gold columns show installs crossing EOS in that month. Dotted lines mark the 3 percent target and 5 percent limit.'"
+                  "Value": "'Combo chart. Red line: actual percent of installs past end of support at each snapshot. A vertical Current Day line marks the latest snapshot; the grey shaded area to its right is a do-nothing projection: a dashed charcoal line shows projected percent past EOS at each month end, and gold columns show installs crossing EOS in that month. Dotted lines mark the 3 percent target and 5 percent limit.'"
                 }
               }
             }

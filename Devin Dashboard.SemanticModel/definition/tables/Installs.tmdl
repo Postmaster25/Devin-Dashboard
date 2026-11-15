@@ -336,6 +336,62 @@ table Installs
 		displayFolder: Titles
 		lineageTag: 17c727a8-050d-4cd3-8f4a-8a57071a9748
 
+	/// Actual % past EOS at each snapshot on the 'Trend Date' axis; blank on projected months.
+	measure 'Trend % Past EOS' =
+			VAR _date = MAX ( 'Trend Date'[Date] )
+			RETURN
+			    IF (
+			        SELECTEDVALUE ( 'Trend Date'[Period] ) = "Actual",
+			        CALCULATE ( [% Past EOS], TREATAS ( { _date }, 'Snapshot'[Snapshot Date] ) )
+			    )
+		formatString: 0.0%
+		displayFolder: Trend & Projection
+		lineageTag: 6cbd427a-b01a-43fe-92c2-6be34f545a87
+
+	/// Do-nothing projection on the 'Trend Date' axis: (installs past EOS at the latest snapshot + installs whose effective EOS date falls after it and on or before the point) / installs at the latest snapshot. Starts at the latest snapshot so the line joins the actual trend; blank on earlier snapshots.
+	measure 'Trend Projected % Past EOS' =
+			VAR _latest = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+			VAR _date = MAX ( 'Trend Date'[Date] )
+			VAR _installs = CALCULATE ( [Installs], 'Snapshot'[Snapshot Date] = _latest )
+			VAR _past = CALCULATE ( [Installs Past EOS], 'Snapshot'[Snapshot Date] = _latest )
+			VAR _crossing =
+			    CALCULATE (
+			        COUNTROWS ( 'Installs' ),
+			        'Snapshot'[Snapshot Date] = _latest,
+			        KEEPFILTERS ( 'Installs'[Effective EOS Date] > _latest ),
+			        KEEPFILTERS ( 'Installs'[Effective EOS Date] <= _date )
+			    )
+			RETURN
+			    IF ( _date >= _latest, DIVIDE ( _past + _crossing, _installs ) )
+		formatString: 0.0%
+		displayFolder: Trend & Projection
+		lineageTag: 4b9dfd2e-e294-47dd-921a-57c53901b0a4
+
+	/// Installs (at the latest snapshot) whose effective EOS date falls in the projected month on the 'Trend Date' axis; the first month also covers the rest of the snapshot month. Blank on actual snapshots.
+	measure 'Trend Installs Crossing EOS' =
+			VAR _latest = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+			VAR _start = MIN ( 'Trend Date'[Window Start] )
+			VAR _end = MAX ( 'Trend Date'[Date] )
+			RETURN
+			    IF (
+			        SELECTEDVALUE ( 'Trend Date'[Period] ) = "Projected",
+			        CALCULATE (
+			            COUNTROWS ( 'Installs' ),
+			            'Snapshot'[Snapshot Date] = _latest,
+			            KEEPFILTERS ( 'Installs'[Effective EOS Date] > _start ),
+			            KEEPFILTERS ( 'Installs'[Effective EOS Date] <= _end )
+			        ) + 0
+			    )
+		formatString: #,##0
+		displayFolder: Trend & Projection
+		lineageTag: 167b3fcf-152d-46e2-bca3-909218fafbb5
+
+	/// Latest snapshot date; positions the Current Day line on the trend and projection chart.
+	measure 'Current Day' = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+		formatString: d mmm yy
+		displayFolder: Trend & Projection
+		lineageTag: b0a861a2-7f55-4501-ae9b-f0b87edc8ee6
+
 	/// Snapshot the row belongs to (relationship to Snapshot).
 	column 'Snapshot Date'
 		dataType: dateTime

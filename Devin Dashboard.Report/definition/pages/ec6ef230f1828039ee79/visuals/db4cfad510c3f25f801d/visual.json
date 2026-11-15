@@ -2,15 +2,15 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
   "name": "db4cfad510c3f25f801d",
   "position": {
-    "x": 640,
+    "x": 24,
     "y": 350,
-    "z": 10000,
-    "height": 340,
-    "width": 1256,
-    "tabOrder": 10000
+    "z": 9000,
+    "height": 400,
+    "width": 1872,
+    "tabOrder": 9000
   },
   "visual": {
-    "visualType": "lineChart",
+    "visualType": "lineClusteredColumnComboChart",
     "query": {
       "queryState": {
         "Category": {
@@ -20,14 +20,15 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Snapshot"
+                      "Entity": "Trend Date"
                     }
                   },
-                  "Property": "Snapshot"
+                  "Property": "Date"
                 }
               },
-              "queryRef": "Snapshot.Snapshot",
-              "nativeQueryRef": "Snapshot"
+              "queryRef": "Trend Date.Date",
+              "nativeQueryRef": "Date",
+              "displayName": "Date"
             }
           ]
         },
@@ -41,12 +42,46 @@
                       "Entity": "Installs"
                     }
                   },
-                  "Property": "% Past EOS"
+                  "Property": "Trend Installs Crossing EOS"
                 }
               },
-              "queryRef": "Installs.% Past EOS",
-              "nativeQueryRef": "% Past EOS",
-              "displayName": "% past EOS"
+              "queryRef": "Installs.Trend Installs Crossing EOS",
+              "nativeQueryRef": "Trend Installs Crossing EOS",
+              "displayName": "Installs crossing EOS (projected month)"
+            }
+          ]
+        },
+        "Y2": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Installs"
+                    }
+                  },
+                  "Property": "Trend % Past EOS"
+                }
+              },
+              "queryRef": "Installs.Trend % Past EOS",
+              "nativeQueryRef": "Trend % Past EOS",
+              "displayName": "% past EOS (actual)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Installs"
+                    }
+                  },
+                  "Property": "Trend Projected % Past EOS"
+                }
+              },
+              "queryRef": "Installs.Trend Projected % Past EOS",
+              "nativeQueryRef": "Trend Projected % Past EOS",
+              "displayName": "Projected % past EOS (no remediation)"
             },
             {
               "field": {
@@ -80,10 +115,46 @@
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Trend Date"
+                  }
+                },
+                "Property": "Date"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": true
       }
     },
     "objects": {
       "dataPoint": [
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFBB41'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Installs Crossing EOS"
+          }
+        },
         {
           "properties": {
             "fill": {
@@ -99,7 +170,25 @@
             }
           },
           "selector": {
-            "metadata": "Installs.% Past EOS"
+            "metadata": "Installs.Trend % Past EOS"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#3B3331'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Projected % Past EOS"
           }
         },
         {
@@ -127,7 +216,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#FFBB41'"
+                      "Value": "'#A3121A'"
                     }
                   }
                 }
@@ -136,6 +225,21 @@
           },
           "selector": {
             "metadata": "Installs.Limit 5%"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFBB41'"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       ],
@@ -155,10 +259,66 @@
                   "Value": "true"
                 }
               }
+            },
+            "markerShape": {
+              "expr": {
+                "Literal": {
+                  "Value": "'circle'"
+                }
+              }
+            },
+            "markerSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "6D"
+                }
+              }
             }
           },
           "selector": {
-            "metadata": "Installs.% Past EOS"
+            "metadata": "Installs.Trend % Past EOS"
+          }
+        },
+        {
+          "properties": {
+            "strokeWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "3D"
+                }
+              }
+            },
+            "lineStyle": {
+              "expr": {
+                "Literal": {
+                  "Value": "'dashed'"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "markerShape": {
+              "expr": {
+                "Literal": {
+                  "Value": "'diamond'"
+                }
+              }
+            },
+            "markerSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "6D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Projected % Past EOS"
           }
         },
         {
@@ -173,7 +333,7 @@
             "lineStyle": {
               "expr": {
                 "Literal": {
-                  "Value": "'dashed'"
+                  "Value": "'dotted'"
                 }
               }
             },
@@ -201,7 +361,7 @@
             "lineStyle": {
               "expr": {
                 "Literal": {
-                  "Value": "'dashed'"
+                  "Value": "'dotted'"
                 }
               }
             },
@@ -257,6 +417,20 @@
           "selector": {
             "metadata": "Installs.Limit 5%"
           }
+        },
+        {
+          "properties": {
+            "labelPosition": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Above'"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Projected % Past EOS"
+          }
         }
       ],
       "legend": [
@@ -279,6 +453,26 @@
           }
         }
       ],
+      "categoryAxis": [
+        {
+          "properties": {
+            "axisType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Scalar'"
+                }
+              }
+            },
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
       "valueAxis": [
         {
           "properties": {
@@ -288,7 +482,173 @@
                   "Value": "0D"
                 }
               }
+            },
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "secShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "secStart": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "secShowAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
             }
+          }
+        }
+      ],
+      "xAxisReferenceLine": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "displayName": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Current Day'"
+                }
+              }
+            },
+            "value": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Installs"
+                    }
+                  },
+                  "Property": "Current Day"
+                }
+              }
+            },
+            "lineColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#3B3331'"
+                    }
+                  }
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            },
+            "style": {
+              "expr": {
+                "Literal": {
+                  "Value": "'solid'"
+                }
+              }
+            },
+            "position": {
+              "expr": {
+                "Literal": {
+                  "Value": "'front'"
+                }
+              }
+            },
+            "dataLabelShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "dataLabelText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Name'"
+                }
+              }
+            },
+            "dataLabelColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#3B3331'"
+                    }
+                  }
+                }
+              }
+            },
+            "dataLabelHorizontalPosition": {
+              "expr": {
+                "Literal": {
+                  "Value": "'right'"
+                }
+              }
+            },
+            "dataLabelVerticalPosition": {
+              "expr": {
+                "Literal": {
+                  "Value": "'above'"
+                }
+              }
+            },
+            "shadeShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "shadeRegion": {
+              "expr": {
+                "Literal": {
+                  "Value": "'after'"
+                }
+              }
+            },
+            "shadeColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#8C8C8C'"
+                    }
+                  }
+                }
+              }
+            },
+            "shadeTransparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "88D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "id": "1"
           }
         }
       ]
@@ -404,7 +764,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'% of installs past EOS by snapshot'"
+                  "Value": "'% of installs past EOS: trend and 6-month projection'"
                 }
               }
             },
@@ -442,7 +802,7 @@
             "altText": {
               "expr": {
                 "Literal": {
-                  "Value": "'Line chart of percent of installs past end of support across the seven snapshots, with dashed 3 percent target and 5 percent limit lines'"
+                  "Value": "'Combo chart. Red line: actual percent of installs past end of support at each snapshot. A vertical Current Day line marks the latest snapshot; the shaded area to its right is a do-nothing projection: a dashed charcoal line shows projected percent past EOS at each month end, and gold columns show installs crossing EOS in that month. Dotted lines mark the 3 percent target and 5 percent limit.'"
                 }
               }
             }

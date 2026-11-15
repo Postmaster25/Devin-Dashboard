@@ -20,6 +20,7 @@ ref table 'Upcoming Month'
 ref table 'View By'
 ref table 'Worklist Columns'
 ref table 'Worklist Measures'
+ref table 'Trend Date'
 
 ref cultureInfo en-US
 

@@ -1,0 +1,47 @@
+/// Utility table for the combined trend and projection chart: each snapshot date (Actual) followed by the six month-ends after the latest snapshot (Projected). Not related to other tables.
+table 'Trend Date'
+	lineageTag: f77d37de-0e53-470b-b99b-0442aed2c166
+
+	/// Snapshot date for actual points; month end for projected points.
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: d mmm yy
+		lineageTag: 2f1627d0-e559-4f8f-b7ef-8ef4c2cdee8b
+		summarizeBy: none
+		sourceColumn: trend_date
+
+	/// Actual (a snapshot) or Projected (a month after the latest snapshot).
+	column Period
+		dataType: string
+		lineageTag: 333647be-99a6-4bf3-89aa-3880c722fa67
+		summarizeBy: none
+		sourceColumn: period
+
+	/// Exclusive start of the projected month's EOS window (the latest snapshot for the first month).
+	column 'Window Start'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		lineageTag: 118db054-c398-4918-87d8-993273ef2f40
+		summarizeBy: none
+		sourceColumn: window_start
+
+	partition 'Trend Date' = m
+		mode: import
+		source =
+				let
+				    Bytes = if Text.StartsWith(SourceCsvPath, "http") then Web.Contents(SourceCsvPath) else File.Contents(SourceCsvPath),
+				    Csv = Csv.Document(Bytes, [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]),
+				    Dates = Table.TransformColumnTypes(Table.Distinct(Table.SelectColumns(Promoted, {"snapshot_date"})), {{"snapshot_date", type date}}, "en-US"),
+				    // Projections anchor to the latest snapshot, not today
+				    Latest = List.Max(Dates[snapshot_date]),
+				    Actual = Table.FromRecords(List.Transform(List.Sort(Dates[snapshot_date]), each [trend_date = _, period = "Actual", window_start = null])),
+				    MonthEnds = List.Transform({1..6}, each Date.EndOfMonth(Date.AddMonths(Latest, _))),
+				    Projected = Table.FromRecords(List.Transform({0..5}, each [trend_date = MonthEnds{_}, period = "Projected", window_start = if _ = 0 then Latest else MonthEnds{_ - 1}])),
+				    Combined = Table.Combine({Actual, Projected}),
+				    Typed = Table.TransformColumnTypes(Combined, {{"trend_date", type date}, {"period", type text}, {"window_start", type date}})
+				in
+				    Typed
+

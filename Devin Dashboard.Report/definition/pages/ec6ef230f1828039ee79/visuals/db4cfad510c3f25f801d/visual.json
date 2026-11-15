@@ -143,21 +143,6 @@
               "queryRef": "Installs.Trend Projected % Past EOS",
               "nativeQueryRef": "Trend Projected % Past EOS",
               "displayName": "Projected % past EOS (no remediation)"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Installs"
-                    }
-                  },
-                  "Property": "Trend Projection Connector"
-                }
-              },
-              "queryRef": "Installs.Trend Projection Connector",
-              "nativeQueryRef": "Trend Projection Connector",
-              "displayName": " "
             }
           ]
         }
@@ -183,24 +168,6 @@
     },
     "objects": {
       "dataPoint": [
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#3B3331'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Installs.Trend Projection Connector"
-          }
-        },
         {
           "properties": {
             "fill": {
@@ -630,48 +597,6 @@
         },
         {
           "properties": {
-            "strokeWidth": {
-              "expr": {
-                "Literal": {
-                  "Value": "3D"
-                }
-              }
-            },
-            "lineStyle": {
-              "expr": {
-                "Literal": {
-                  "Value": "'dashed'"
-                }
-              }
-            },
-            "showMarker": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "lineChartType": {
-              "expr": {
-                "Literal": {
-                  "Value": "'linear'"
-                }
-              }
-            },
-            "areaShow": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "Installs.Trend Projection Connector"
-          }
-        },
-        {
-          "properties": {
             "areaShow": {
               "expr": {
                 "Literal": {
@@ -766,16 +691,16 @@
         },
         {
           "properties": {
-            "show": {
+            "labelPosition": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "'Above'"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "Installs.Trend Projection Connector"
+            "metadata": "Installs.Trend % Past EOS"
           }
         }
       ],

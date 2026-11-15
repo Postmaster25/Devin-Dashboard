@@ -67,7 +67,7 @@
               },
               "queryRef": "Installs.Trend Projection Shading",
               "nativeQueryRef": "Trend Projection Shading",
-              "displayName": "Projection (no remediation)"
+              "displayName": "Projection period"
             },
             {
               "field": {

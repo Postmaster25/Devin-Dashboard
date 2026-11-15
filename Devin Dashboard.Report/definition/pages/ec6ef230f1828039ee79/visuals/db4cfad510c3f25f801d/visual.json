@@ -62,12 +62,12 @@
                       "Entity": "Installs"
                     }
                   },
-                  "Property": "Trend Projection Shading"
+                  "Property": "Trend % Past EOS"
                 }
               },
-              "queryRef": "Installs.Trend Projection Shading",
-              "nativeQueryRef": "Trend Projection Shading",
-              "displayName": "Projection period"
+              "queryRef": "Installs.Trend % Past EOS",
+              "nativeQueryRef": "Trend % Past EOS",
+              "displayName": "% past EOS (actual)"
             },
             {
               "field": {
@@ -77,12 +77,12 @@
                       "Entity": "Installs"
                     }
                   },
-                  "Property": "Trend Current Day Line"
+                  "Property": "Trend Projected % Past EOS"
                 }
               },
-              "queryRef": "Installs.Trend Current Day Line",
-              "nativeQueryRef": "Trend Current Day Line",
-              "displayName": "Current Day"
+              "queryRef": "Installs.Trend Projected % Past EOS",
+              "nativeQueryRef": "Trend Projected % Past EOS",
+              "displayName": "Projected % past EOS (no remediation)"
             },
             {
               "field": {
@@ -122,12 +122,12 @@
                       "Entity": "Installs"
                     }
                   },
-                  "Property": "Trend % Past EOS"
+                  "Property": "Trend Current Day Line"
                 }
               },
-              "queryRef": "Installs.Trend % Past EOS",
-              "nativeQueryRef": "Trend % Past EOS",
-              "displayName": "% past EOS (actual)"
+              "queryRef": "Installs.Trend Current Day Line",
+              "nativeQueryRef": "Trend Current Day Line",
+              "displayName": "Current Day"
             },
             {
               "field": {
@@ -137,12 +137,12 @@
                       "Entity": "Installs"
                     }
                   },
-                  "Property": "Trend Projected % Past EOS"
+                  "Property": "Trend Projection Shading"
                 }
               },
-              "queryRef": "Installs.Trend Projected % Past EOS",
-              "nativeQueryRef": "Trend Projected % Past EOS",
-              "displayName": "Projected % past EOS (no remediation)"
+              "queryRef": "Installs.Trend Projection Shading",
+              "nativeQueryRef": "Trend Projection Shading",
+              "displayName": "Projection period"
             }
           ]
         }

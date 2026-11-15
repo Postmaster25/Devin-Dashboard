@@ -434,6 +434,15 @@ table Installs
 		displayFolder: Trend & Projection
 		lineageTag: b21303be-296c-4a1a-b151-f2649993acb8
 
+	/// Colour for the projected line's points: Wells Fargo red on the Current Day point (where it overlaps the actual line), charcoal elsewhere.
+	measure 'Trend Projected Marker Color' =
+			VAR _latest = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+			RETURN
+			    IF ( MAX ( 'Trend Date'[Date] ) = _latest, "#D71E28", "#3B3331" )
+		isHidden
+		displayFolder: Trend & Projection
+		lineageTag: 4d87f447-69ff-41ff-816f-1f82a1986af9
+
 	/// Snapshot the row belongs to (relationship to Snapshot).
 	column 'Snapshot Date'
 		dataType: dateTime

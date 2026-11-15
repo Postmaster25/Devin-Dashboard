@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "c09cdba3f8731c16bc49",
   "position": {
     "x": 1220,
@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Host.Managed By Group",
-              "nativeQueryRef": "Managed By Group"
+              "nativeQueryRef": "Managed By Group",
+              "active": true
             }
           ]
         },
@@ -116,7 +117,6 @@
         }
       ]
     },
-    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "background": [
         {
@@ -272,6 +272,7 @@
           }
         }
       ]
-    }
+    },
+    "drillFilterOtherVisuals": true
   }
 }

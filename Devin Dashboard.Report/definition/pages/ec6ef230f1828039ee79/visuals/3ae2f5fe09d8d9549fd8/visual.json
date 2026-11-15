@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "3ae2f5fe09d8d9549fd8",
   "position": {
     "x": 24,
@@ -28,6 +28,7 @@
               },
               "queryRef": "Installs.EOS Status",
               "nativeQueryRef": "EOS Status",
+              "active": true,
               "displayName": "Lifecycle status"
             }
           ]
@@ -94,7 +95,6 @@
         }
       ]
     },
-    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "background": [
         {
@@ -250,6 +250,7 @@
           }
         }
       ]
-    }
+    },
+    "drillFilterOtherVisuals": true
   }
 }

@@ -7,7 +7,125 @@
         "x": 0,
         "y": 0
       },
-      "nodes": [],
+      "nodes": [
+        {
+          "location": {
+            "x": 280.08875384353803,
+            "y": 653.50213443972052
+          },
+          "nodeIndex": "Host",
+          "nodeLineageTag": "31395c6b-5b55-402d-b896-b3d69f9ee4f0",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 562.77520459392917,
+            "y": -50
+          },
+          "nodeIndex": "Installs",
+          "nodeLineageTag": "0123ddb0-bcdf-49e8-be30-85a14a070dba",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 526.86237556353342,
+            "y": 303.195661564685
+          },
+          "nodeIndex": "Product",
+          "nodeLineageTag": "59fcf085-4524-478a-8685-76dd9f31d72a",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 152.71936731319965
+          },
+          "nodeIndex": "Snapshot",
+          "nodeLineageTag": "be22ce5d-ebfd-4db7-90f1-b275edddba03",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 796.77520459392917,
+            "y": 413.75106721986026
+          },
+          "nodeIndex": "Trend Date",
+          "nodeLineageTag": "f77d37de-0e53-470b-b99b-0442aed2c166",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1080.7752045939292,
+            "y": 413.75106721986026
+          },
+          "nodeIndex": "Upcoming Month",
+          "nodeLineageTag": "5fca0532-a254-4f56-b571-a4518fc9ef81",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1364.7752045939292,
+            "y": 413.75106721986026
+          },
+          "nodeIndex": "View By",
+          "nodeLineageTag": "4fda0b7a-fb73-4dc5-a5f5-8c5debf77e96",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1648.7752045939292,
+            "y": 425.75106721986026
+          },
+          "nodeIndex": "Worklist Columns",
+          "nodeLineageTag": "1563a0bc-2f8a-4ebd-b265-4c043bca2090",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1932.7752045939292,
+            "y": 425.75106721986026
+          },
+          "nodeIndex": "Worklist Measures",
+          "nodeLineageTag": "eb6c667c-0dca-4756-ad33-a4b3934482d9",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
       "name": "All tables",
       "zoomValue": 100,
       "pinKeyFieldsToTop": false,

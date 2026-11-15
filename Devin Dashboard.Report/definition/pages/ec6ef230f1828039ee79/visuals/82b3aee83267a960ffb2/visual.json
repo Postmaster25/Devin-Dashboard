@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "82b3aee83267a960ffb2",
   "position": {
     "x": 640,
@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "Product.Product",
-              "nativeQueryRef": "Product"
+              "nativeQueryRef": "Product",
+              "active": true
             }
           ]
         },
@@ -102,7 +103,6 @@
         }
       ]
     },
-    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "background": [
         {
@@ -258,7 +258,8 @@
           }
         }
       ]
-    }
+    },
+    "drillFilterOtherVisuals": true
   },
   "filterConfig": {
     "filters": [

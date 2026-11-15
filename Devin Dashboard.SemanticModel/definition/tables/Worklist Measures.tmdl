@@ -17,7 +17,11 @@ table 'Worklist Measures'
 		sourceColumn: [Value2]
 		sortByColumn: 'Worklist Measures Order'
 
-		extendedProperty ParameterMetadata = {"version":3,"kind":2}
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
 
 	column 'Worklist Measures'
 		dataType: string

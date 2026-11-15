@@ -12,6 +12,8 @@ annotation __PBI_TimeIntelligenceEnabled = 0
 
 annotation PBI_ProTooling = ["DevMode"]
 
+annotation PBI_QueryOrder = ["Installs","Host","Product","Snapshot","Upcoming Month","Trend Date","SourceCsvPath"]
+
 ref table Installs
 ref table Host
 ref table Product

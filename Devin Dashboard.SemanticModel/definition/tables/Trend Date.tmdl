@@ -11,6 +11,8 @@ table 'Trend Date'
 		summarizeBy: none
 		sourceColumn: trend_date
 
+		annotation UnderlyingDateTimeDataType = Date
+
 	/// Actual (a snapshot) or Projected (a month after the latest snapshot).
 	column Period
 		dataType: string
@@ -26,6 +28,8 @@ table 'Trend Date'
 		lineageTag: 118db054-c398-4918-87d8-993273ef2f40
 		summarizeBy: none
 		sourceColumn: window_start
+
+		annotation UnderlyingDateTimeDataType = Date
 
 	/// Axis label for the trend and projection chart: the date, with "(Current Day)" on the latest snapshot. Sorted by Date.
 	column Label

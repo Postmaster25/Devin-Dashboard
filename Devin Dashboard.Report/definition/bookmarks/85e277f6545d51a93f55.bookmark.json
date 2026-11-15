@@ -1,9 +1,23 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/1.4.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
   "displayName": "Reset page 3",
   "name": "85e277f6545d51a93f55",
+  "options": {
+    "applyOnlyToTargetVisuals": true,
+    "targetVisualNames": [
+      "7555ef1cc8378a7514bf",
+      "597ba8250b847f8575c6",
+      "dcd6290a6c58a93f6978",
+      "00985b2dd521908768f5",
+      "f9fac0c7cca98780eb26",
+      "28bdbef0ab406cb6855e",
+      "70056d000f9547f29682",
+      "41a150709dc4011ee583"
+    ],
+    "suppressActiveSection": true
+  },
   "explorationState": {
-    "version": "1.3",
+    "version": "1.0",
     "activeSection": "7bc3ca68769437ce9864",
     "sections": {
       "7bc3ca68769437ce9864": {
@@ -519,19 +533,5 @@
         }
       }
     }
-  },
-  "options": {
-    "suppressActiveSection": true,
-    "applyOnlyToTargetVisuals": true,
-    "targetVisualNames": [
-      "7555ef1cc8378a7514bf",
-      "597ba8250b847f8575c6",
-      "dcd6290a6c58a93f6978",
-      "00985b2dd521908768f5",
-      "f9fac0c7cca98780eb26",
-      "28bdbef0ab406cb6855e",
-      "70056d000f9547f29682",
-      "41a150709dc4011ee583"
-    ]
   }
 }

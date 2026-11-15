@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "db4cfad510c3f25f801d",
   "position": {
     "x": 24,
@@ -28,6 +28,7 @@
               },
               "queryRef": "Trend Date.Label",
               "nativeQueryRef": "Label",
+              "active": true,
               "displayName": "Date"
             }
           ]
@@ -392,6 +393,13 @@
                   "Value": "'after'"
                 }
               }
+            },
+            "areaShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
             }
           },
           "selector": {
@@ -432,6 +440,13 @@
               "expr": {
                 "Literal": {
                   "Value": "'linear'"
+                }
+              }
+            },
+            "areaShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
@@ -483,6 +498,13 @@
                   "Value": "'linear'"
                 }
               }
+            },
+            "areaShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
             }
           },
           "selector": {
@@ -516,6 +538,13 @@
               "expr": {
                 "Literal": {
                   "Value": "'linear'"
+                }
+              }
+            },
+            "areaShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
@@ -553,10 +582,28 @@
                   "Value": "'linear'"
                 }
               }
+            },
+            "areaShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
             }
           },
           "selector": {
             "metadata": "Installs.Limit 5%"
+          }
+        },
+        {
+          "properties": {
+            "areaShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
           }
         }
       ],
@@ -744,7 +791,6 @@
         }
       ]
     },
-    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "background": [
         {
@@ -900,6 +946,123 @@
           }
         }
       ]
-    }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "0bfbeeabbb3c2505dc44",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Trend Date"
+              }
+            },
+            "Property": "Label"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "573e0fed92b37a087616",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Installs"
+              }
+            },
+            "Property": "Trend Installs Crossing EOS"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "737c7d70340513b68dac",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Installs"
+              }
+            },
+            "Property": "Trend Projection Shading"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "01269427b78788a29294",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Installs"
+              }
+            },
+            "Property": "Trend Current Day Line"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "27094fd64c03b990809e",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Installs"
+              }
+            },
+            "Property": "Target 3%"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "d87b681420608851982b",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Installs"
+              }
+            },
+            "Property": "Limit 5%"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "8cbac117b35a56885a0a",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Installs"
+              }
+            },
+            "Property": "Trend % Past EOS"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "aa26b4505307404b7372",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Installs"
+              }
+            },
+            "Property": "Trend Projected % Past EOS"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

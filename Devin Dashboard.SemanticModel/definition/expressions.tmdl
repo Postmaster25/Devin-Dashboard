@@ -2,3 +2,5 @@
 expression SourceCsvPath = "https://raw.githubusercontent.com/Postmaster25/Devin-Dashboard/3c4c952e50ac6eda9fbfd417aed54ea8812b74cf/data/software_itam_eos_snapshots.csv" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 	lineageTag: 927e5472-fb2a-4917-8994-1ef6c2fadf33
 
+	annotation PBI_ResultType = Text
+

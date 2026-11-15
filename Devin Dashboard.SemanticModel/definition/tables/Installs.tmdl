@@ -434,6 +434,16 @@ table Installs
 		displayFolder: Trend & Projection
 		lineageTag: b21303be-296c-4a1a-b151-f2649993acb8
 
+	/// Data label for the projected line: blank on the Current Day point, where the actual line already shows the same value.
+	measure 'Trend Projected % Label' =
+			VAR _latest = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+			RETURN
+			    IF ( MAX ( 'Trend Date'[Date] ) <> _latest, [Trend Projected % Past EOS] )
+		formatString: 0.0%
+		isHidden
+		displayFolder: Trend & Projection
+		lineageTag: 2606aa19-2eb1-4e25-8c9d-cf7ee546cfd1
+
 	/// Snapshot the row belongs to (relationship to Snapshot).
 	column 'Snapshot Date'
 		dataType: dateTime

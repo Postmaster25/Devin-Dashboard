@@ -683,6 +683,25 @@
                   "Value": "'Above'"
                 }
               }
+            },
+            "showDynamicLabels": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "dynamicLabelValue": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Installs"
+                    }
+                  },
+                  "Property": "Trend Projected % Label"
+                }
+              }
             }
           },
           "selector": {

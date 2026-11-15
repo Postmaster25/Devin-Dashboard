@@ -363,7 +363,7 @@ table Installs
 			    )
 			RETURN
 			    IF (
-			        _date >= _latest && SELECTEDVALUE ( 'Trend Date'[Period] ) <> "Padding",
+			        SELECTEDVALUE ( 'Trend Date'[Period] ) = "Projected",
 			        DIVIDE ( _past + _crossing, _installs )
 			    )
 		formatString: 0.0%
@@ -434,15 +434,34 @@ table Installs
 		displayFolder: Trend & Projection
 		lineageTag: b21303be-296c-4a1a-b151-f2649993acb8
 
-	/// Data label for the projected line: blank on the Current Day point, where the actual line already shows the same value.
-	measure 'Trend Projected % Label' =
+	/// Draws the projected line's first segment, from the latest snapshot to the first projected month end, as an unlabelled series so the Current Day point shows one % label.
+	measure 'Trend Projection Connector' =
 			VAR _latest = CALCULATE ( MAX ( 'Snapshot'[Snapshot Date] ), REMOVEFILTERS ( 'Snapshot' ) )
+			VAR _date = MAX ( 'Trend Date'[Date] )
+			VAR _installs = CALCULATE ( [Installs], 'Snapshot'[Snapshot Date] = _latest )
+			VAR _past = CALCULATE ( [Installs Past EOS], 'Snapshot'[Snapshot Date] = _latest )
+			VAR _crossing =
+			    CALCULATE (
+			        COUNTROWS ( 'Installs' ),
+			        'Snapshot'[Snapshot Date] = _latest,
+			        KEEPFILTERS ( 'Installs'[Effective EOS Date] > _latest ),
+			        KEEPFILTERS ( 'Installs'[Effective EOS Date] <= _date )
+			    )
+			VAR _firstMonth =
+			    CALCULATE (
+			        MIN ( 'Trend Date'[Date] ),
+			        REMOVEFILTERS ( 'Trend Date' ),
+			        'Trend Date'[Period] = "Projected"
+			    )
 			RETURN
-			    IF ( MAX ( 'Trend Date'[Date] ) <> _latest, [Trend Projected % Past EOS] )
+			    IF (
+			        _date >= _latest && _date <= _firstMonth,
+			        DIVIDE ( _past + _crossing, _installs )
+			    )
 		formatString: 0.0%
 		isHidden
 		displayFolder: Trend & Projection
-		lineageTag: 2606aa19-2eb1-4e25-8c9d-cf7ee546cfd1
+		lineageTag: 80e8c8ed-e005-4b13-a38d-3bd066333c25
 
 	/// Snapshot the row belongs to (relationship to Snapshot).
 	column 'Snapshot Date'

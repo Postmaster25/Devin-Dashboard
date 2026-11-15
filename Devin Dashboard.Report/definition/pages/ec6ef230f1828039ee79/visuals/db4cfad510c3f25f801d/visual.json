@@ -143,6 +143,21 @@
               "queryRef": "Installs.Trend Projected % Past EOS",
               "nativeQueryRef": "Trend Projected % Past EOS",
               "displayName": "Projected % past EOS (no remediation)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Installs"
+                    }
+                  },
+                  "Property": "Trend Projection Connector"
+                }
+              },
+              "queryRef": "Installs.Trend Projection Connector",
+              "nativeQueryRef": "Trend Projection Connector",
+              "displayName": " "
             }
           ]
         }
@@ -168,6 +183,24 @@
     },
     "objects": {
       "dataPoint": [
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#3B3331'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Projection Connector"
+          }
+        },
         {
           "properties": {
             "fill": {
@@ -597,6 +630,48 @@
         },
         {
           "properties": {
+            "strokeWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "3D"
+                }
+              }
+            },
+            "lineStyle": {
+              "expr": {
+                "Literal": {
+                  "Value": "'dashed'"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "lineChartType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'linear'"
+                }
+              }
+            },
+            "areaShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Projection Connector"
+          }
+        },
+        {
+          "properties": {
             "areaShow": {
               "expr": {
                 "Literal": {
@@ -683,29 +758,24 @@
                   "Value": "'Above'"
                 }
               }
-            },
-            "showDynamicLabels": {
+            }
+          },
+          "selector": {
+            "metadata": "Installs.Trend Projected % Past EOS"
+          }
+        },
+        {
+          "properties": {
+            "show": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "dynamicLabelValue": {
-              "expr": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Installs"
-                    }
-                  },
-                  "Property": "Trend Projected % Label"
+                  "Value": "false"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "Installs.Trend Projected % Past EOS"
+            "metadata": "Installs.Trend Projection Connector"
           }
         }
       ],

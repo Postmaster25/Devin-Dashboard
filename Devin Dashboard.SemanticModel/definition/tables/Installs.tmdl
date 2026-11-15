@@ -362,7 +362,10 @@ table Installs
 			        KEEPFILTERS ( 'Installs'[Effective EOS Date] <= _date )
 			    )
 			RETURN
-			    IF ( _date >= _latest, DIVIDE ( _past + _crossing, _installs ) )
+			    IF (
+			        _date >= _latest && SELECTEDVALUE ( 'Trend Date'[Period] ) <> "Padding",
+			        DIVIDE ( _past + _crossing, _installs )
+			    )
 		formatString: 0.0%
 		displayFolder: Trend & Projection
 		lineageTag: 4b9dfd2e-e294-47dd-921a-57c53901b0a4

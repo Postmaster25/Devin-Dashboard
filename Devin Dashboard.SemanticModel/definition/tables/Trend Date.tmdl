@@ -52,8 +52,10 @@ table 'Trend Date'
 				    Actual = Table.FromRecords(List.Transform(List.Sort(Dates[snapshot_date]), each [trend_date = _, period = "Actual", window_start = null])),
 				    MonthEnds = List.Transform({1..6}, each Date.EndOfMonth(Date.AddMonths(Latest, _))),
 				    Projected = Table.FromRecords(List.Transform({0..5}, each [trend_date = MonthEnds{_}, period = "Projected", window_start = if _ = 0 then Latest else MonthEnds{_ - 1}])),
-				    Combined = Table.Combine({Actual, Projected}),
-				    Labelled = Table.AddColumn(Combined, "label", each Date.ToText([trend_date], [Format = "d MMM yy", Culture = "en-US"]) & (if [trend_date] = Latest then " (Current Day)" else "")),
+				    // Blank point after the last month so the projection shading reaches past the last column
+				    Padding = Table.FromRecords({[trend_date = Date.EndOfMonth(Date.AddMonths(Latest, 7)), period = "Padding", window_start = null]}),
+				    Combined = Table.Combine({Actual, Projected, Padding}),
+				    Labelled = Table.AddColumn(Combined, "label", each if [period] = "Padding" then " " else Date.ToText([trend_date], [Format = "d MMM yy", Culture = "en-US"]) & (if [trend_date] = Latest then " (Current Day)" else "")),
 				    Typed = Table.TransformColumnTypes(Labelled, {{"trend_date", type date}, {"period", type text}, {"window_start", type date}, {"label", type text}})
 				in
 				    Typed

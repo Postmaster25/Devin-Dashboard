@@ -455,7 +455,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Lifecycle detail (Product → Version → Host, or CIO org → Group → Host)'"
+                  "Value": "'Lifecycle detail (Product \u2192 Version \u2192 Host, or CIO org \u2192 Group \u2192 Host)'"
                 }
               }
             },
@@ -494,6 +494,19 @@
               "expr": {
                 "Literal": {
                   "Value": "'Drillable matrix whose row hierarchy follows the View by slicer, showing installs, past EOS, percent past EOS by RAG, version, effective EOS date, days past EOS and days non-compliant'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }

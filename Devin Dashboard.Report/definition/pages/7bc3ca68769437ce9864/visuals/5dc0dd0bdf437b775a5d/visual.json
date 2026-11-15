@@ -481,7 +481,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Remediation worklist (latest snapshot) — export via ⋯ > Export data'"
+                  "Value": "'Remediation worklist (latest snapshot) \u2014 export via \u22ef > Export data'"
                 }
               }
             },
@@ -520,6 +520,19 @@
               "expr": {
                 "Literal": {
                   "Value": "'Remediation worklist table at the grain chosen by the worklist column and measure slicers; export through the visual header Export data command'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }

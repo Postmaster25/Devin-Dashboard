@@ -449,7 +449,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'CIO org → managed-by group'"
+                  "Value": "'CIO org \u2192 managed-by group'"
                 }
               }
             },
@@ -488,6 +488,19 @@
               "expr": {
                 "Literal": {
                   "Value": "'Matrix of CIO organisations expandable to managed-by groups with installs, past EOS count, percent past EOS coloured and labelled by RAG band, change versus prior snapshot and average days non-compliant'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }

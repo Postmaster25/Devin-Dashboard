@@ -308,36 +308,6 @@
               }
             }
           }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "Installs"
-                        }
-                      },
-                      "Property": "Trend Projected Marker Color"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "data": [
-              {
-                "dataViewWildcard": {
-                  "matchingOption": 1
-                }
-              }
-            ],
-            "metadata": "Installs.Trend Projected % Past EOS"
-          }
         }
       ],
       "lineStyles": [

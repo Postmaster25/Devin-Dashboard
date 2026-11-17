@@ -449,7 +449,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'CIO org \u2192 managed-by group'"
+                  "Value": "'CIO org → managed-by group'"
                 }
               }
             },

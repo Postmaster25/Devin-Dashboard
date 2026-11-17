@@ -455,7 +455,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Lifecycle detail (Product \u2192 Version \u2192 Host, or CIO org \u2192 Group \u2192 Host)'"
+                  "Value": "'Lifecycle detail (Product → Version → Host, or CIO org → Group → Host)'"
                 }
               }
             },

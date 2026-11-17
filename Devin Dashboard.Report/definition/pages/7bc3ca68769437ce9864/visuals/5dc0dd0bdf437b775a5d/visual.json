@@ -481,7 +481,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Remediation worklist (latest snapshot) \u2014 export via \u22ef > Export data'"
+                  "Value": "'Remediation worklist (latest snapshot) — export via ⋯ > Export data'"
                 }
               }
             },

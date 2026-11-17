@@ -212,7 +212,7 @@ cultureInfo en-US
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Projection (no remediation)": {
+			          "Projection period": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",

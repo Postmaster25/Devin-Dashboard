@@ -443,6 +443,17 @@ table Installs
 		displayFolder: Trend & Projection
 		lineageTag: 4d87f447-69ff-41ff-816f-1f82a1986af9
 
+	measure 'Projection Marker Color' =
+			
+			IF(
+			    MAX('Trend Date'[Date]) = [Latest Snapshot Label],
+			    "Red",
+			    "Black"
+			)
+		formatString: 0
+		displayFolder: Trend & Projection
+		lineageTag: 46a68475-8e15-4fb3-b26a-a0457adabf2b
+
 	/// Snapshot the row belongs to (relationship to Snapshot).
 	column 'Snapshot Date'
 		dataType: dateTime

@@ -28,7 +28,7 @@ INSERT INTO installs (
     aging_start_date, potential_aging_cause
 )
 SELECT
-    t.snapshot_date, t.install_id, h.host_key, p.release_key,
+    t.snapshot_date, t.install_id, t.host_key, t.release_key,
     t.install_date, t.last_scanned_date, t.discovery_source,
     t.software_operational_status, t.host_operational_status,
     t.effective_eos_date,
@@ -38,9 +38,9 @@ SELECT
     CASE WHEN t.aging_start_date IS NOT NULL THEN DATEDIFF(t.snapshot_date, t.aging_start_date) END,
     t.aging_start_date, t.potential_aging_cause
 FROM (
-    SELECT e.*,
+    SELECT e.*, h.host_key, p.release_key,
         ROW_NUMBER() OVER (PARTITION BY e.snapshot_date, e.install_id
-                           ORDER BY e.ci_id, e.technopedia_release_id) AS rn,
+                           ORDER BY h.host_key, p.release_key) AS rn,
         CASE
             WHEN e.effective_eos_date IS NULL THEN 'Unknown'
             WHEN e.effective_eos_date <= e.snapshot_date THEN 'Past EOS'
@@ -83,12 +83,12 @@ FROM (
             FROM staging_installs s
         ) AS r
     ) AS e
+    JOIN hosts    h ON h.ci_id = e.ci_id
+    JOIN products p ON p.technopedia_release_id = e.technopedia_release_id
+    WHERE e.snapshot_date IS NOT NULL
+      AND e.install_id IS NOT NULL
 ) AS t
-JOIN hosts    h ON h.ci_id = t.ci_id
-JOIN products p ON p.technopedia_release_id = t.technopedia_release_id
-WHERE t.snapshot_date IS NOT NULL
-  AND t.install_id IS NOT NULL
-  AND t.rn = 1;   -- one row per (snapshot_date, install_id) if the CSV was imported twice
+WHERE t.rn = 1;   -- one row per (snapshot_date, install_id); ranked after the joins so only loadable rows compete
 
 COMMIT;
 

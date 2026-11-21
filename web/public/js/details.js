@@ -150,7 +150,7 @@ let filterUi;
     let t;
     search.addEventListener('input', () => {
       clearTimeout(t);
-      t = setTimeout(() => { view.q = search.value.trim(); view.page = 1; syncAll(); loadInstalls().catch(showError); }, 300);
+      t = setTimeout(() => { view.q = search.value.trim(); load(); }, 300);
     });
     document.getElementById('prev').addEventListener('click', () => { view.page -= 1; loadInstalls().catch(showError); });
     document.getElementById('next').addEventListener('click', () => { view.page += 1; loadInstalls().catch(showError); });

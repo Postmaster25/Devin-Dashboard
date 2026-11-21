@@ -1,8 +1,9 @@
 -- =============================================================================
 -- load_installs.sql - (re)load devin_dashboard.installs from staging_installs
 -- Keeps the existing design (install_key / host_key / release_key surrogates).
--- Safe to re-run: the DELETE + INSERT run in one transaction, so a failed load
--- leaves the previous installs rows in place.
+-- Safe to re-run: new rows are built in a temporary installs_load table first,
+-- and installs is only replaced (in one transaction) once that load succeeds,
+-- so a failed load leaves the previous installs rows in place.
 -- Every date is cleaned (strip CR/LF/TAB, TRIM, '' -> NULL) and only passed to
 -- STR_TO_DATE(..., '%Y-%m-%d') after a YYYY-MM-DD + real-calendar-day check,
 -- so malformed values become NULL instead of raising error 1292/1411.
@@ -16,11 +17,13 @@
 -- =============================================================================
 USE devin_dashboard;
 
-START TRANSACTION;
+-- Undo a DELETE left pending by an earlier failed run in this Workbench session.
+ROLLBACK;
 
-DELETE FROM installs WHERE install_key > 0;   -- WHERE on PK keeps Workbench safe-update mode happy
+DROP TEMPORARY TABLE IF EXISTS installs_load;
+CREATE TEMPORARY TABLE installs_load LIKE installs;
 
-INSERT INTO installs (
+INSERT INTO installs_load (
     snapshot_date, install_id, host_key, release_key,
     install_date, last_scanned_date, discovery_source,
     software_operational_status, host_operational_status,
@@ -90,7 +93,29 @@ FROM (
 ) AS t
 WHERE t.rn = 1;   -- one row per (snapshot_date, install_id); ranked after the joins so only loadable rows compete
 
+-- Replace installs only if installs_load has rows (a failed load leaves it empty,
+-- which matters when Workbench is set to continue on error).
+START TRANSACTION;
+DELETE FROM installs
+WHERE install_key > 0                                -- PK filter keeps safe-update mode happy
+  AND EXISTS (SELECT 1 FROM installs_load);
+INSERT INTO installs (
+    snapshot_date, install_id, host_key, release_key,
+    install_date, last_scanned_date, discovery_source,
+    software_operational_status, host_operational_status,
+    effective_eos_date, eos_status, is_past_eos, days_past_eos, days_non_compliant,
+    aging_start_date, potential_aging_cause
+)
+SELECT
+    snapshot_date, install_id, host_key, release_key,
+    install_date, last_scanned_date, discovery_source,
+    software_operational_status, host_operational_status,
+    effective_eos_date, eos_status, is_past_eos, days_past_eos, days_non_compliant,
+    aging_start_date, potential_aging_cause
+FROM installs_load;
 COMMIT;
+
+DROP TEMPORARY TABLE installs_load;
 
 -- ---- verification -----------------------------------------------------------
 SELECT (SELECT COUNT(*) FROM staging_installs) AS staging_rows,

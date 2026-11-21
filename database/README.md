@@ -16,9 +16,9 @@ products  (release_key, technopedia_release_id unique) ─┘
 |---|------|-------|
 | 0 | Import the CSV into `staging_installs` (all columns `TEXT`) | Truncate the table first, or the rows are appended |
 | 1 | Load `snapshots`, `hosts` and `products` | Must contain every `snapshot_date`, `ci_id` and `technopedia_release_id` in staging |
-| 2 | Run `load_installs.sql` | Replaces all `installs` rows in one transaction, then prints the checks below |
+| 2 | Run `load_installs.sql` | Builds the new rows in a temporary `installs_load` table, replaces all `installs` rows in one transaction, then prints the checks below |
 
-Safe to re-run. If the load fails, the transaction rolls back and `installs` keeps its previous rows.
+Safe to re-run. If building `installs_load` fails (for example error 1406), `installs` is not touched and keeps its previous rows. This also holds in Workbench with *continue on error* turned on.
 
 ## Output checks
 

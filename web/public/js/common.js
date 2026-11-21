@@ -141,8 +141,9 @@ function fillSnapshots(select, snapshots, onChange) {
 }
 
 function fillMonths(select, onChange) {
-  select.innerHTML = [1, 2, 3, 6, 9, 12, 18, 24].map((n) => `<option value="${n}"${n === state.months ? ' selected' : ''}>${n}</option>`).join('');
-  if (![...select.options].some((o) => o.selected)) { state.months = 6; select.value = '6'; }
+  const choices = [1, 2, 3, 6, 9, 12, 18, 24];
+  if (!choices.includes(state.months)) state.months = 6;
+  select.innerHTML = choices.map((n) => `<option value="${n}"${n === state.months ? ' selected' : ''}>${n}</option>`).join('');
   select.addEventListener('change', () => { state.months = Number(select.value); onChange(); });
 }
 

@@ -1,0 +1,143 @@
+/// One row per host (CI). A host belongs to exactly one managed-by group, which belongs to one CIO org.
+table Host
+	lineageTag: 31395c6b-5b55-402d-b896-b3d69f9ee4f0
+
+	column 'Host Key'
+		dataType: int64
+		isHidden
+		isKey
+		lineageTag: 3dda61ea-ab67-4b96-88f7-16510ee78a6b
+		summarizeBy: none
+		sourceColumn: host_key
+
+	/// Configuration item identifier of the host.
+	column 'CI ID'
+		dataType: string
+		lineageTag: 51f8bdf7-5120-44e3-bb2e-8cae0e2da716
+		summarizeBy: none
+		sourceColumn: ci_id
+
+	/// Host name.
+	column Host
+		dataType: string
+		lineageTag: 43e001b0-396e-4225-853f-3c1ff05ad2db
+		summarizeBy: none
+		sourceColumn: host_name
+
+	/// Configuration item type (server, virtual machine, ...).
+	column 'CI Type'
+		dataType: string
+		lineageTag: 6c450ef3-c174-4086-8fe3-0e0205212b89
+		summarizeBy: none
+		sourceColumn: ci_type
+
+	/// Host environment (Production, Disaster Recovery, ...).
+	column Environment
+		dataType: string
+		lineageTag: 71583568-974a-456e-ad27-558c6c79405e
+		summarizeBy: none
+		sourceColumn: environment
+
+	/// Business criticality of the host.
+	column 'Business Criticality'
+		dataType: string
+		lineageTag: 0af266ed-e673-4e33-9cc8-fd5f97208b99
+		summarizeBy: none
+		sourceColumn: business_criticality
+
+	/// Street address of the host's site.
+	column Address
+		dataType: string
+		lineageTag: 13b5b157-ad36-4397-822f-bc8a47ab6532
+		dataCategory: Address
+		summarizeBy: none
+		sourceColumn: address
+
+	/// City of the host's site.
+	column City
+		dataType: string
+		lineageTag: b532ad1a-ea12-44ae-9aa2-13b7925de0fb
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: city
+
+	/// State or province of the host's site.
+	column State
+		dataType: string
+		lineageTag: 81f205dc-cdf8-401b-9099-171b50adeb07
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: state
+
+	/// Country of the host's site.
+	column Country
+		dataType: string
+		lineageTag: 26991245-c378-45d8-97c3-ffeae517c451
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: country
+
+	/// Support group that owns the host.
+	column 'Managed By Group'
+		dataType: string
+		lineageTag: e3341b7d-541c-4de9-a0c6-6ceec4d6955b
+		summarizeBy: none
+		sourceColumn: managed_by_group
+
+	/// Manager of the managed-by group.
+	column 'Group Manager'
+		dataType: string
+		lineageTag: e8791ce2-3fed-4b67-b961-d88c0414343b
+		summarizeBy: none
+		sourceColumn: managed_by_group_manager_name
+
+	/// Chief Information Officer (CIO) organization that owns the managed-by group.
+	column 'CIO Org'
+		dataType: string
+		lineageTag: 360af029-34ab-45b9-84b3-323b096a515c
+		summarizeBy: none
+		sourceColumn: cio_org_name
+
+	/// Leader of the CIO organization.
+	column 'CIO Org Manager'
+		dataType: string
+		lineageTag: 1b173694-f0ef-4a26-9c6b-c220e546c941
+		summarizeBy: none
+		sourceColumn: cio_org_manager_name
+
+	/// Cost center of the host.
+	column 'Cost Center'
+		dataType: string
+		lineageTag: 8d8c026a-bfea-48d6-906d-d5e5c0084d70
+		summarizeBy: none
+		sourceColumn: cost_center
+
+	/// CIO org > managed-by group > host drill path.
+	hierarchy Organization
+		lineageTag: ac19993b-6597-4a6d-b3ee-78793aaa7a6d
+
+		level 'CIO Org'
+			lineageTag: c9ae57d9-054b-4627-a26f-e8e6808930f5
+			column: 'CIO Org'
+
+		level 'Managed By Group'
+			lineageTag: fb421ad2-db47-4975-b5a1-4e85df93405e
+			column: 'Managed By Group'
+
+		level Host
+			lineageTag: 45e05e2a-854f-4ac7-bed3-40cd1fff9deb
+			column: Host
+
+	partition Host = m
+		mode: import
+		source =
+				let
+				    Bytes = if Text.StartsWith(SourceCsvPath, "http") then Web.Contents(SourceCsvPath) else File.Contents(SourceCsvPath),
+				    Csv = Csv.Document(Bytes, [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]),
+				    Selected = Table.SelectColumns(Promoted, {"ci_id", "host_name", "ci_type", "environment", "business_criticality", "address", "city", "state", "country", "managed_by_group", "managed_by_group_manager_name", "cio_org_name", "cio_org_manager_name", "cost_center"}),
+				    Distinct = Table.Distinct(Selected, {"ci_id"}),
+				    AddKey = Table.AddColumn(Distinct, "host_key", each Number.From(Text.AfterDelimiter([ci_id], "CI")), Int64.Type)
+				in
+				    AddKey
+

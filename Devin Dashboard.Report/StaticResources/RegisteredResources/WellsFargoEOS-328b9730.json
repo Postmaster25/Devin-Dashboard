@@ -1,0 +1,81 @@
+{
+  "name": "WellsFargoEOS-328b9730.json",
+  "dataColors": [
+    "#D71E28",
+    "#FFBB41",
+    "#2E8B47",
+    "#8C8C8C",
+    "#3B3331",
+    "#7A1F1F",
+    "#C9A227",
+    "#5E7D63"
+  ],
+  "foreground": "#3B3331",
+  "foregroundNeutralSecondary": "#6B625F",
+  "background": "#FFFFFF",
+  "backgroundLight": "#F4F0ED",
+  "tableAccent": "#D71E28",
+  "good": "#2E8B47",
+  "neutral": "#FFBB41",
+  "bad": "#D71E28",
+  "maximum": "#D71E28",
+  "center": "#FFBB41",
+  "minimum": "#2E8B47",
+  "textClasses": {
+    "title": {
+      "fontFace": "Segoe UI Semibold",
+      "color": "#3B3331",
+      "fontSize": 13
+    },
+    "label": {
+      "fontFace": "Segoe UI",
+      "color": "#3B3331",
+      "fontSize": 10
+    },
+    "callout": {
+      "fontFace": "Segoe UI Semibold",
+      "color": "#3B3331",
+      "fontSize": 28
+    },
+    "header": {
+      "fontFace": "Segoe UI Semibold",
+      "color": "#3B3331",
+      "fontSize": 12
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        ],
+        "visualHeader": [
+          {
+            "show": true
+          }
+        ]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [
+          {
+            "color": {
+              "solid": {
+                "color": "#F4F0ED"
+              }
+            },
+            "transparency": 0
+          }
+        ]
+      }
+    }
+  }
+}

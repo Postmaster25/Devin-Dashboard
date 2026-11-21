@@ -1,0 +1,54 @@
+/// Utility table: the six calendar months after the latest snapshot, used by the upcoming-EOS projection. Not related to other tables.
+table 'Upcoming Month'
+	lineageTag: 5fca0532-a254-4f56-b571-a4518fc9ef81
+
+	column 'Month Number'
+		dataType: int64
+		isHidden
+		lineageTag: 0f05d531-0387-4a27-bac1-c14702aa5a71
+		summarizeBy: none
+		sourceColumn: month_number
+
+	/// Last day of the month.
+	column 'Month End'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 0d2c6c45-dfe3-45c3-9805-da19b869c3b7
+		summarizeBy: none
+		sourceColumn: month_end
+
+	column 'Window Start'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		isAvailableInMdx: false
+		lineageTag: cff2c428-840f-4874-aee7-73dab1297fa7
+		summarizeBy: none
+		sourceColumn: window_start
+
+	/// Month label, sorted chronologically.
+	column Month
+		dataType: string
+		lineageTag: 3e33efb5-6c03-4440-8f4b-ce50efc63221
+		summarizeBy: none
+		sourceColumn: month_label
+		sortByColumn: 'Month Number'
+
+	partition 'Upcoming Month' = m
+		mode: import
+		source =
+				let
+				    Bytes = if Text.StartsWith(SourceCsvPath, "http") then Web.Contents(SourceCsvPath) else File.Contents(SourceCsvPath),
+				    Csv = Csv.Document(Bytes, [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]),
+				    Dates = Table.TransformColumnTypes(Table.Distinct(Table.SelectColumns(Promoted, {"snapshot_date"})), {{"snapshot_date", type date}}, "en-US"),
+				    // Projections anchor to the latest snapshot, not today
+				    Latest = List.Max(Dates[snapshot_date]),
+				    Months = Table.FromList({1..6}, Splitter.SplitByNothing(), {"month_number"}),
+				    Typed = Table.TransformColumnTypes(Months, {{"month_number", Int64.Type}}),
+				    AddEnd = Table.AddColumn(Typed, "month_end", each Date.EndOfMonth(Date.AddMonths(Latest, [month_number])), type date),
+				    AddStart = Table.AddColumn(AddEnd, "window_start", each if [month_number] = 1 then Latest else Date.EndOfMonth(Date.AddMonths(Latest, [month_number] - 1)), type date),
+				    AddLabel = Table.AddColumn(AddStart, "month_label", each Date.ToText([month_end], [Format = "MMM yyyy", Culture = "en-US"]), type text)
+				in
+				    AddLabel
+

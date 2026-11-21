@@ -17,9 +17,6 @@
 -- =============================================================================
 USE devin_dashboard;
 
--- Undo a DELETE left pending by an earlier failed run in this Workbench session.
-ROLLBACK;
-
 DROP TEMPORARY TABLE IF EXISTS installs_load;
 CREATE TEMPORARY TABLE installs_load LIKE installs;
 

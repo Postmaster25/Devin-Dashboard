@@ -34,7 +34,7 @@ Sample CSV totals: 70,617 installs, 7 snapshots, 1,667 hosts, 147 products.
 A row is skipped, and counted in `not_loaded`, when:
 
 - its `snapshot_date` or `install_id` is blank or malformed;
-- its `ci_id` or `technopedia_release_id` has no match in `hosts` or `products`;
+- its `snapshot_date`, `ci_id` or `technopedia_release_id` has no match in `snapshots`, `hosts` or `products`;
 - it repeats an earlier `(snapshot_date, install_id)`, for example after importing the CSV twice.
 
 ## Derived columns

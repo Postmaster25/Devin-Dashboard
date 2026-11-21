@@ -10,8 +10,8 @@
 -- EOS logic matches Installs.tmdl: effective = COALESCE(extended, obsolete, EOL),
 -- status evaluated against each row's snapshot_date.
 -- Rows are skipped (and counted in not_loaded below) when snapshot_date or
--- install_id is blank/malformed, the ci_id or technopedia_release_id has no
--- match in hosts/products, or the row duplicates an earlier (snapshot_date,
+-- install_id is blank/malformed, the snapshot_date, ci_id or
+-- technopedia_release_id has no match in snapshots/hosts/products, or the row duplicates an earlier (snapshot_date,
 -- install_id).
 -- Run after snapshots, hosts and products are loaded.
 -- =============================================================================
@@ -83,6 +83,7 @@ FROM (
             FROM staging_installs s
         ) AS r
     ) AS e
+    JOIN snapshots sn ON sn.snapshot_date = e.snapshot_date   -- installs_load has no FKs; filter here so the final INSERT cannot fail
     JOIN hosts    h ON h.ci_id = e.ci_id
     JOIN products p ON p.technopedia_release_id = e.technopedia_release_id
     WHERE e.snapshot_date IS NOT NULL

@@ -8,3 +8,7 @@ Open `Devin Dashboard.pbip` in Power BI Desktop, then select **Refresh**.
 - **Pages:** Executive Summary, Risk by Organization, and Lifecycle Detail & Remediation.
 - **Rules:** effective EOS date = extended support end, then obsolete, then end of life. "Current" values use the latest snapshot. Projections run forward from that snapshot, not from today. The RAG bands are ≤3% green, 3–5% amber and >5% red.
 - **Design reference:** see [`mockups/`](mockups/).
+
+## MySQL star schema
+
+See [`database/`](database/) for MySQL 8.0+ scripts that build `snapshots`, `hosts`, `products` and `installs` from a `staging_installs` table imported from the CSV.

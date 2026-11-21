@@ -11,4 +11,4 @@ Open `Devin Dashboard.pbip` in Power BI Desktop, then select **Refresh**.
 
 ## MySQL star schema
 
-See [`database/`](database/) for MySQL 8.0+ scripts that build `snapshots`, `hosts`, `products` and `installs` from a `staging_installs` table imported from the CSV.
+See [`database/`](database/) for `load_installs.sql`, which loads the MySQL `installs` table from a `staging_installs` table imported from the CSV, with safe date parsing and the derived EOS columns.

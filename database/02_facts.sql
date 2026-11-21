@@ -1,6 +1,8 @@
 -- =============================================================================
 -- 02_facts.sql  -  EOS star schema: installs fact table
--- MySQL 8.0+. Idempotent: installs is truncated and fully reloaded each run.
+-- MySQL 8.0+. Idempotent: installs is fully reloaded each run.
+-- The new rows are built in installs_load first (same columns, keys and
+-- foreign keys), so a failed load leaves the existing installs rows untouched.
 -- Run 01_dimensions.sql first (it creates v_staging_installs and the
 -- dimension tables that installs references).
 --
@@ -53,9 +55,16 @@ CREATE TABLE IF NOT EXISTS installs (
     CONSTRAINT fk_installs_product  FOREIGN KEY (technopedia_release_id) REFERENCES products (technopedia_release_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
-TRUNCATE TABLE installs;
+DROP TABLE IF EXISTS installs_load;
+CREATE TABLE installs_load LIKE installs;
+-- CREATE TABLE ... LIKE does not copy foreign keys; add them so the load
+-- table rejects the same rows installs would.
+ALTER TABLE installs_load
+    ADD FOREIGN KEY (snapshot_date)          REFERENCES snapshots (snapshot_date),
+    ADD FOREIGN KEY (ci_id)                  REFERENCES hosts (ci_id),
+    ADD FOREIGN KEY (technopedia_release_id) REFERENCES products (technopedia_release_id);
 
-INSERT INTO installs (snapshot_date, install_id, ci_id, technopedia_release_id, edition, install_date,
+INSERT INTO installs_load (snapshot_date, install_id, ci_id, technopedia_release_id, edition, install_date,
                       last_scanned_date, discovery_source, software_operational_status, host_operational_status,
                       host_last_discovered_date, aging_start_date, potential_aging_cause, effective_eos_date,
                       eos_status, eos_status_order, is_past_eos, days_past_eos, days_non_compliant)
@@ -90,3 +99,8 @@ FROM (
     ) AS e
     WHERE e.dup_rank = 1
 ) AS st;
+
+-- Swap in the new rows only after the full load succeeded.
+TRUNCATE TABLE installs;
+INSERT INTO installs SELECT * FROM installs_load;
+DROP TABLE installs_load;

@@ -16,7 +16,7 @@ Run every script in the schema that holds `staging_installs` (Workbench: double-
 |---|--------|--------------|-------------|
 | 0 | Import wizard | Load the CSV into `staging_installs` (all columns `TEXT`) | Truncate or drop the table first, or rows are appended |
 | 1 | `01_dimensions.sql` | Creates the `v_staging_installs` cleaning view. Creates and upserts `snapshots`, `hosts` and `products` | Yes (upsert) |
-| 2 | `02_facts.sql` | Creates `installs`, then truncates and reloads it with the derived EOS columns | Yes (full reload) |
+| 2 | `02_facts.sql` | Creates `installs`, builds the new rows with the derived EOS columns in `installs_load`, then swaps them into `installs` | Yes (full reload). If the load fails, `installs` keeps its previous rows |
 | 3 | `03_verify.sql` | Read-only sanity checks. Rows with a `status` column should all say `OK` | Yes |
 
 The sample CSV takes about 10 s for scripts 1 and 2 combined. Expected results for it: 70,617 installs, 7 snapshots, 1,667 hosts and 147 products. At the latest snapshot (2026-09-19) the split is 393 Past EOS (3.76%), 3,951 Extended, 5,427 Supported and 678 Unknown.
@@ -57,6 +57,7 @@ Malformed dates become NULL without an error, and check 4 in `03_verify.sql` cou
 | Error 1175 (safe update mode) | Workbench `SQL_SAFE_UPDATES` | `01_dimensions.sql` turns it off only around its single `UPDATE` and restores it. If you edit the scripts, keep that pattern |
 | Error 1701 `Cannot truncate a table referenced in a foreign key` | You added a table that references `installs` | Drop or disable that foreign key before running `02_facts.sql` |
 | Error 1451 when dropping or deleting a dimension | `installs` references it | Drop `installs` first (see *Full reset*) |
+| Error 1452 `Cannot add or update a child row: a foreign key constraint fails` in `02_facts.sql` | Staging was reloaded but `01_dimensions.sql` was not re-run, so a host, product or snapshot is missing | Run `01_dimensions.sql`, then `02_facts.sql` again. `installs` still has its previous rows |
 | Error 1406 `Data too long for column` | A text value is longer than the column size (columns are sized well above the sample data) | Widen it: `ALTER TABLE hosts MODIFY host_name VARCHAR(500);` |
 | Error 2013 / Workbench timeout | The default 30 s read timeout is too short on a slow server | *Edit → Preferences → SQL Editor → DBMS connection read timeout* = 600 |
 | Old hosts/products still listed after reloading staging with different data | Dimensions are upserted, never pruned | Run a full reset |
@@ -64,7 +65,7 @@ Malformed dates become NULL without an error, and check 4 in `03_verify.sql` cou
 ### Full reset
 
 ```sql
-DROP TABLE IF EXISTS installs;
+DROP TABLE IF EXISTS installs, installs_load;
 DROP TABLE IF EXISTS snapshots, hosts, products;
 DROP VIEW  IF EXISTS v_staging_installs;
 -- then run 01, 02, 03 again

@@ -29,21 +29,23 @@ function deltaHtml(cur, prev, unit, digits = 0) {
   return `<span class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${txt}</span> vs prior snapshot`;
 }
 
+const KRI_LINES = [['3% Target', GREEN_MAX, '--rag-green'], ['5% Limit', AMBER_MAX, '--rag-red']];
+
 function renderKpis() {
   const s = data.summary;
   const r = rag(s.pct);
   const pr = rag(s.projected_pct);
   const set = (id, cls, html) => { const el = document.getElementById(id); el.className = `card kpi ${cls}`; el.innerHTML = html; };
-  set('kpi-pct', `rag-${r}`, `
-    <div class="label">% Software Past End of Support</div>
-    <div class="value">${fmtPct(s.pct)}</div>
-    <div class="meta">${deltaHtml(s.pct, s.previous && s.previous.pct, 'pts')}</div>
-    ${r ? `<span class="badge ${r}">${RAG_LABEL[r]}</span>` : ''}`);
-  set('kpi-past', '', `
-    <div class="label">Installs Past End of Support</div>
-    <div class="value">${fmtInt(s.past)}</div>
-    <div class="meta">of ${fmtInt(s.total)} installs · ${deltaHtml(s.past, s.previous && s.previous.past)}</div>
-    <div class="meta">Avg ${s.avg_days_non_compliant == null ? '–' : fmtInt(Math.round(s.avg_days_non_compliant))} days non-compliant</div>`);
+  const pctEl = document.getElementById('kpi-pct');
+  pctEl.className = `kri-main rag-${r}`;
+  pctEl.innerHTML = `<div class="kri-label">Software %<br>Past End of Support</div><div class="kri-value">${fmtPct(s.pct)}</div>`;
+  const above = (limit) => Math.max(0, Math.floor(s.past - (s.total * limit) / 100));
+  const overLimit = above(AMBER_MAX), overTarget = above(GREEN_MAX);
+  document.getElementById('kpi-counts').innerHTML = `
+    <div><div class="kri-k">Count Above 5% Limit</div><div class="kri-v${overLimit ? ' bad' : ''}">${fmtInt(overLimit)}</div></div>
+    <div><div class="kri-k">Count Above 3% Target</div><div class="kri-v${overTarget ? ' warn' : ''}">${fmtInt(overTarget)}</div></div>
+    <div><div class="kri-k">Count of Software Past End of Support</div><div class="kri-v">${fmtInt(s.past)}</div></div>
+    <div><div class="kri-k">Total Software Count</div><div class="kri-v">${fmtInt(s.total)}</div></div>`;
   set('kpi-reaching', '', `
     <div class="label">Installs Reaching End of Support</div>
     <div class="value">${fmtInt(s.reaching)}</div>
@@ -70,39 +72,52 @@ function ragLines(values) {
   };
 }
 
+const shortDate = (iso) => { const [y, m, d] = iso.split('-'); return `${Number(m)}/${Number(d)}/${y}`; };
+
 function renderTrend() {
   const rows = data.trend;
   const pctMode = toggles.trendMode === 'pct';
-  const green = cssVar('--rag-green');
-  const red = cssVar('--rag-red');
-  const ragColor = (p) => ({ green, amber: '#E0A100', red }[rag(p)] || cssVar('--series-1'));
-  const x = rows.map((r) => r.snapshot);
-  const series = pctMode ? [{
-    name: '% past EOS', type: 'line', data: rows.map((r) => r.pct), smooth: false, symbolSize: 8,
-    lineStyle: { color: cssVar('--series-1'), width: 2.5 },
-    itemStyle: { color: (p) => ragColor(p.value) },
-    label: { show: true, fontSize: 10, color: cssVar('--text'), formatter: (p) => fmtPct(p.value, 1) },
-    markLine: ragLines([['5% red', AMBER_MAX, red], ['3% green', GREEN_MAX, green]]),
-  }] : [
-    { name: 'Installs past EOS', type: 'bar', data: rows.map((r) => r.past), itemStyle: { color: cssVar('--series-1') }, barMaxWidth: 34,
-      label: { show: true, position: 'top', fontSize: 10, color: cssVar('--text') } },
-    { name: '5% boundary', type: 'line', data: rows.map((r) => Math.round(r.total * AMBER_MAX / 100)), symbol: 'none', lineStyle: { type: 'dashed', color: red } },
-    { name: '3% boundary', type: 'line', data: rows.map((r) => Math.round(r.total * GREEN_MAX / 100)), symbol: 'none', lineStyle: { type: 'dashed', color: green } },
-  ];
+  const line = cssVar('--series-1');
+  const muted = cssVar('--text-muted');
+  const values = rows.map((r) => (pctMode ? r.pct : r.past));
+  const kri = KRI_LINES.map(([name, limit, color]) => ({
+    name, limit, color: cssVar(color),
+    data: rows.map((r) => (pctMode ? limit : (r.total * limit) / 100)),
+  }));
+  const all = values.concat(...kri.map((k) => k.data)).filter((v) => v != null);
+  const lo = Math.min(...all), hi = Math.max(...all), pad = (hi - lo || 1) * 0.25;
+  const fmt = (v) => (pctMode ? fmtPct(v) : fmtInt(Math.round(v)));
+  const series = [{
+    name: pctMode ? '% past EOS' : 'Installs past EOS', type: 'line', data: values, smooth: 0.4, z: 3,
+    symbol: 'circle', symbolSize: 10, showAllSymbol: true,
+    lineStyle: { color: line, width: 3 },
+    itemStyle: { color: cssVar('--card-bg'), borderColor: line, borderWidth: 2.5 },
+    label: { show: true, position: 'top', distance: 8, fontSize: 13, fontWeight: 600, color: muted, formatter: (p) => fmt(p.value) },
+  }, ...kri.map((k) => ({
+    name: k.name, type: 'line', data: k.data, symbol: 'none', silent: true, z: 2,
+    lineStyle: { color: k.color, type: [6, 5], width: 2, opacity: 0.6 },
+    markPoint: {
+      symbol: 'rect', symbolSize: 1, silent: true,
+      data: [{ coord: [0, k.data[0]], label: { show: true, position: k.limit === AMBER_MAX ? 'top' : 'bottom', align: 'left', offset: [-6, k.limit === AMBER_MAX ? -2 : 2], color: k.color, fontSize: 12, formatter: `${k.name}: ${fmtPct(k.limit)}` } }],
+      itemStyle: { color: 'transparent' },
+    },
+  }))];
   chart('chart-trend').setOption({
     animation: false,
-    grid: { left: 44, right: 16, top: 24, bottom: 28 },
+    grid: { left: 30, right: 30, top: 34, bottom: 34 },
     tooltip: {
       trigger: 'axis',
       formatter: (ps) => {
         const r = rows[ps[0].dataIndex];
-        return `<b>${esc(r.snapshot)}</b><br>${fmtPct(r.pct)} past EOS<br>${fmtInt(r.past)} of ${fmtInt(r.total)} installs`;
+        return `<b>${esc(shortDate(r.snapshot))}</b><br>${fmtPct(r.pct)} past EOS<br>${fmtInt(r.past)} of ${fmtInt(r.total)} installs`;
       },
     },
-    legend: pctMode ? { show: false } : { top: 0, right: 0, textStyle: { fontSize: 10 }, itemHeight: 8 },
-    xAxis: { type: 'category', data: x, ...axisStyle(), axisLabel: { ...axisStyle().axisLabel, formatter: (v) => v.slice(5) } },
-    yAxis: { type: 'value', min: 0, max: pctMode ? (v) => Math.max(6, Math.ceil(v.max + 1)) : null, ...axisStyle(),
-      axisLabel: { ...axisStyle().axisLabel, formatter: pctMode ? '{value}%' : '{value}' } },
+    xAxis: {
+      type: 'category', data: rows.map((r) => r.snapshot), boundaryGap: ['4%', '4%'],
+      axisLine: { show: false }, axisTick: { show: false },
+      axisLabel: { color: muted, fontSize: 12, margin: 16, formatter: shortDate },
+    },
+    yAxis: { type: 'value', show: false, scale: true, min: lo - pad * 1.6, max: hi + pad },
     series,
   }, true);
 }
@@ -262,8 +277,13 @@ let filterUi;
       filterUi.refresh();
       load();
     });
+    const sw = document.getElementById('trend-switch');
+    sw.addEventListener('click', () => {
+      toggles.trendMode = toggles.trendMode === 'pct' ? 'count' : 'pct';
+      sw.setAttribute('aria-checked', String(toggles.trendMode === 'count'));
+      renderTrend();
+    });
     initToggles((key) => {
-      if (key === 'trendMode') renderTrend();
       if (key === 'pastBy') load(['past']);
       if (key === 'futureBy') load(['futureBy']);
     });

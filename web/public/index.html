@@ -39,16 +39,13 @@
 
     <section class="panel panel-past" aria-labelledby="past-title">
       <h2 class="panel-title" id="past-title">Software Installs Past End of Support</h2>
-      <div class="grid grid-home">
-        <div class="kpi-stack">
-          <div class="card kpi" id="kpi-pct"></div>
-          <div class="card kpi" id="kpi-past"></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h3>Past End of Support by snapshot</h3>
-            <div class="toggle" data-toggle="trendMode"><button type="button" data-v="pct">%</button><button type="button" data-v="count">Count</button></div>
+      <div class="grid grid-past">
+        <div class="card kri-card">
+          <div class="kri-top">
+            <div class="kri-main" id="kpi-pct"></div>
+            <div class="kri-list" id="kpi-counts"></div>
           </div>
-          <div class="card-sub">Dashed lines are the 3% and 5% RAG boundaries</div>
+          <div class="kri-switch"><span>%</span><button type="button" class="switch" id="trend-switch" role="switch" aria-checked="false" aria-label="Show counts instead of percentages"></button><span>#</span></div>
           <div class="chart" id="chart-trend"></div>
         </div>
         <div class="card">

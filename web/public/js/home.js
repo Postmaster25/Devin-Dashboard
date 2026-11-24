@@ -94,7 +94,8 @@ function renderTrend() {
     itemStyle: { color: cssVar('--card-bg'), borderColor: line, borderWidth: 2.5 },
     label: { show: true, position: 'top', distance: 8, fontSize: 13, fontWeight: 600, color: muted, formatter: (p) => fmt(p.value) },
   }, ...kri.map((k) => ({
-    name: k.name, type: 'line', data: k.data, symbol: 'none', silent: true, z: 2,
+    name: k.name, type: 'line', data: k.data, silent: true, z: 2,
+    symbol: rows.length > 1 ? 'none' : 'rect', symbolSize: [120, 2], itemStyle: { color: k.color, opacity: 0.6 },
     lineStyle: { color: k.color, type: [6, 5], width: 2, opacity: 0.6 },
     markPoint: {
       symbol: 'rect', symbolSize: 1, silent: true,

@@ -39,7 +39,7 @@ function renderKpis() {
   const pctEl = document.getElementById('kpi-pct');
   pctEl.className = `kri-main rag-${r}`;
   pctEl.innerHTML = `<div class="kri-label">Software %<br>Past End of Support</div><div class="kri-value">${fmtPct(s.pct)}</div>`;
-  const above = (limit) => Math.max(0, Math.floor(s.past - (s.total * limit) / 100));
+  const above = (limit) => Math.max(0, Math.ceil(s.past - (s.total * limit) / 100 - 1e-9));
   const overLimit = above(AMBER_MAX), overTarget = above(GREEN_MAX);
   document.getElementById('kpi-counts').innerHTML = `
     <div><div class="kri-k">Count Above 5% Limit</div><div class="kri-v${overLimit ? ' bad' : ''}">${fmtInt(overLimit)}</div></div>

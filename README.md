@@ -12,3 +12,7 @@ Open `Devin Dashboard.pbip` in Power BI Desktop, then select **Refresh**.
 ## MySQL star schema
 
 See [`database/`](database/) for `load_installs.sql`, which loads the MySQL `installs` table from a `staging_installs` table imported from the CSV, with safe date parsing and the derived EOS columns.
+
+## EOS Dashboard website (local)
+
+See [`web/`](web/) for a local website version of the EOS Dashboard report that reads the `devin_dashboard` tables. Run `npm install` and `npm start` in `web/`, then open http://localhost:3000.

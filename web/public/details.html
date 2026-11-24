@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Details · Software End of Support Dashboard</title>
+  <link rel="icon" href="img/cjb-logo.png">
+  <link rel="stylesheet" href="css/theme.css">
+</head>
+<body data-theme="cjb">
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="logo" src="img/cjb-logo.png" alt="CJB Technology logo">
+      <div class="wordmark">WELLS FARGO</div>
+      <div class="org">CJB TECHNOLOGY</div>
+      <div class="title">Software End of Support Dashboard</div>
+    </div>
+    <nav class="nav" id="nav">
+      <a href="index.html" data-nav="home">Home</a>
+      <a href="details.html" data-nav="past">Details (Past EoS)</a>
+      <a href="details.html" data-nav="future">Details (Future EoS)</a>
+    </nav>
+    <div class="side-section">Filters</div>
+    <div class="filters" id="filters"></div>
+    <button type="button" class="side-btn" id="reset">Reset filters</button>
+    <div class="theme-switch">Theme
+      <button type="button" data-theme-set="cjb">Report</button>
+      <button type="button" data-theme-set="wf">Wells Fargo</button>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <h1 id="page-title">Details</h1>
+      <div class="toggle" data-toggle="type"><button type="button" data-v="past">Past EoS</button><button type="button" data-v="future">Future EoS</button></div>
+      <label id="months-wrap">Next <select id="months" aria-label="Months ahead"></select> months</label>
+      <label>Snapshot <select id="snapshot"></select></label>
+      <div class="chips" id="chips"></div>
+    </header>
+    <div id="error" class="error" hidden></div>
+
+    <section class="card">
+      <div class="card-head"><h3 id="products-title">Software products</h3><span class="muted" id="products-count"></span></div>
+      <div class="card-sub">Select a product to filter the install list · select a column to sort</div>
+      <div class="table-wrap" style="max-height:300px"><table id="products"><thead></thead><tbody></tbody></table></div>
+    </section>
+
+    <section class="card">
+      <div class="toolbar">
+        <h3 style="margin:0;flex:1;font-size:13px" id="installs-title">Installs</h3>
+        <input type="search" id="search" placeholder="Search host, product, team or install ID" aria-label="Search installs">
+        <a class="btn secondary" id="csv" href="#">Export CSV</a>
+      </div>
+      <div class="table-wrap"><table id="installs"><thead></thead><tbody></tbody></table></div>
+      <div class="pager"><span id="page-info"></span>
+        <button type="button" class="btn secondary" id="prev">Previous</button>
+        <button type="button" class="btn secondary" id="next">Next</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/common.js"></script>
+  <script src="js/details.js"></script>
+</body>
+</html>

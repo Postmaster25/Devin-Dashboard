@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Software End of Support Dashboard</title>
+  <link rel="icon" href="img/cjb-logo.png">
+  <link rel="stylesheet" href="css/theme.css">
+</head>
+<body data-theme="cjb">
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="logo" src="img/cjb-logo.png" alt="CJB Technology logo">
+      <div class="wordmark">WELLS FARGO</div>
+      <div class="org">CJB TECHNOLOGY</div>
+      <div class="title">Software End of Support Dashboard</div>
+    </div>
+    <nav class="nav" id="nav">
+      <a href="index.html" class="active" data-nav="home">Home</a>
+      <a href="details.html" data-nav="past">Details (Past EoS)</a>
+      <a href="details.html" data-nav="future">Details (Future EoS)</a>
+    </nav>
+    <div class="side-section">Filters</div>
+    <div class="filters" id="filters"></div>
+    <button type="button" class="side-btn" id="reset">Reset filters</button>
+    <div class="theme-switch">Theme
+      <button type="button" data-theme-set="cjb">Report</button>
+      <button type="button" data-theme-set="wf">Wells Fargo</button>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <h1>Software End of Support</h1>
+      <label>Snapshot <select id="snapshot"></select></label>
+      <div class="chips" id="chips"></div>
+    </header>
+    <div id="error" class="error" hidden></div>
+
+    <section class="panel panel-past" aria-labelledby="past-title">
+      <h2 class="panel-title" id="past-title">Software Installs Past End of Support</h2>
+      <div class="grid grid-past">
+        <div class="card kri-card">
+          <div class="kri-top">
+            <div class="kri-main" id="kpi-pct"></div>
+            <div class="kri-list" id="kpi-counts"></div>
+          </div>
+          <div class="kri-switch"><span>%</span><button type="button" class="switch" id="trend-switch" role="switch" aria-checked="false" aria-label="Show counts instead of percentages"></button><span>#</span></div>
+          <div class="chart" id="chart-trend"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Software Count Past End of Support</h3>
+            <div class="toggle" data-toggle="pastBy"><button type="button" data-v="team">Team</button><button type="button" data-v="product">Top 5 product version</button></div>
+          </div>
+          <div class="card-sub">Faded bar is the prior snapshot · select a bar for details</div>
+          <div class="chart" id="chart-past"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel-future" aria-labelledby="future-title">
+      <h2 class="panel-title" id="future-title">Software Installs Reaching End of Support in the next <select id="months" aria-label="Months ahead"></select> months</h2>
+      <div class="grid grid-home">
+        <div class="kpi-stack">
+          <div class="card kpi" id="kpi-reaching"></div>
+          <div class="card kpi" id="kpi-projected"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Software Count Reaching End of Support During Month</h3></div>
+          <div class="card-sub">Line is the projected % past EOS if nothing is remediated</div>
+          <div class="chart" id="chart-month"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Software Count Reaching End of Support</h3>
+            <div class="toggle" data-toggle="futureBy"><button type="button" data-v="team">Team</button><button type="button" data-v="product">Top 5 product version</button></div>
+          </div>
+          <div class="card-sub">Select a bar for details</div>
+          <div class="chart" id="chart-future"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/vendor/echarts.min.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>
